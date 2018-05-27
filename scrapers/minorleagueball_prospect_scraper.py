@@ -20,7 +20,7 @@ base_url = ""
 
 start_time = time()
 
-url_file = os.getcwd()+"/minorleagueball_urls.csv"
+url_file = os.getcwd()+"/scrapers/minorleagueball_urls.csv"
 url_dict = {}
 with open(url_file, "rU") as f:
     mycsv = csv.reader(f)

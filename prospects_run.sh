@@ -22,3 +22,7 @@ python scrapers/minorleagueball_prospect_scraper.py --end_year 2018 --scrape_len
 wait
 
 python processing/minorleagueball_prospect_id_grade_updater.py
+
+wait
+
+python process/master_prospect_tables.py

@@ -449,15 +449,20 @@ def adjust_minorleagueball_name(full_name, year, team_abb):
     "CodyBuckelRHP_2013_tex": ["Cody", "Buckel"],
     "CristianPache_2017_atl": ["Cristian", "Pache"],
     "DanteBichetteJR_2013_nyy": ["Dante", "Bichette Jr."],
+    "DelinoDeShields_2013_hou": ["Delino", "DeShields Jr."],
     "DonnieDewess_2018_kc": ["Donnie", "Dewees"],
     "DwightSmithJR_2016_tor": ["Dwight", "Smith Jr."],
     "EduardoParedes.RHP_2017_laa":["Eduardo", "Paredes"],
     "FernandoTatisJr_2017_sd": ["Fernando", "Tatis Jr."],
+    "FernandoTatis_2018_sd": ["Fernando", "Tatis Jr."],
     "FrancellisMontas_2015_chw": ["Frankie", "Montas"],
     "J.R.Murphy_2014_nyy": ["J.R.", "Murphy"],
     "JimmyBrasoban_2016_sd": ["Yimmy", "Brasoban"],
     "JoseIsraelGarcia_2018_cin": ["Jose Israel", "Garcia"],
     "JuanCarlosPaniagua_2013_chc": ["Juan Carlos", "Paniagua"],
+    "LanceMcCullers_2013_hou": ["Lance", "McCullers Jr."],
+    "LanceMcCullers_2014_hou": ["Lance", "McCullers Jr."],
+    "LourdesGurriel_2017_tor": ["Lourdes", "Gurriel Jr."],
     "LuisAlexanderBasabe_2016_bos": ["Luis Alexander", "Basabe"],
     "LuisAlexanderBasabe_2017_chw": ["Luis Alexander", "Basabe"],
     "MiguelAlfredoGonzalez_2015_phi": ["Miguel Alfredo", "Gonzalez"],
@@ -469,8 +474,10 @@ def adjust_minorleagueball_name(full_name, year, team_abb):
     "TrentClark_2016_mil": ["Trent", "Grisham"],
     "TrentClark_2017_mil": ["Trent", "Grisham"],
     "TreyMicalczewski_2015_chw": ["Trey", "Michalczewski"],
+    "TroyStokes_2018_mil": ["Troy", "Stokes Jr."],
+    "VladGuerrero_2016_tor": ["Vladimir", "Guerrero Jr."],
     "VladimirGuerreroJr_2017_tor": ["Vladimir", "Guerrero Jr."],
-
+    "VladimirGuerrero_2018_tor": ["Vladimir", "Guerrero Jr."],
     }
 
     if search_str in names_dict:
@@ -487,10 +494,17 @@ def adjust_minorleagueball_position(full_name, year, team_abb, position):
 
     positions_dict = {
     "CodyBuckel_2013_tex": "RHP",
+    "DelinoDeShieldsJr._2013_hou": "OF",
     "EduardoParedes_2017_laa": "RHP",
+    "FernandoTatisJr._2018_sd": "3B",
+    "LanceMcCullersJr._2013_hou": "RHP",
+    "LanceMcCullersJr._2014_hou": "RHP",
+    "LourdesGurrielJr._2017_tor": "SS",
     "NickFranklin_2013_sea": "SS",
     "RaulAlcantara_2015_oak": "RHP",
-
+    "TroyStokesJr._2018_mil": "OF",
+    "VladimirGuerreroJr._2016_tor": "3B",
+    "VladimirGuerreroJr._2018_tor": "3B",
     }
 
     if search_str in positions_dict:
