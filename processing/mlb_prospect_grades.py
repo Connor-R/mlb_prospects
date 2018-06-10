@@ -3,8 +3,10 @@ import argparse
 from decimal import Decimal
 from time import time
 
+
 from py_db import db
 db = db('mlb_prospects')
+
 
 def initiate():
     start_time = time()
@@ -220,3 +222,4 @@ if __name__ == "__main__":
    
     initiate()
     
+

@@ -8,17 +8,20 @@ import argparse
 import csv
 import os
 
+
 import prospect_helper as helper
 from py_db import db
 
+
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"}
 
+
 db = db("mlb_prospects")
+
 
 sleep_time = 3
 base_url = ""
 
-start_time = time()
 
 url_file = os.getcwd()+"/scrapers/minorleagueball_urls.csv"
 url_dict = {}
@@ -36,6 +39,9 @@ with open(url_file, "rU") as f:
             url_dict.get(year).append({team_abb:url})
 
 
+start_time = time()
+
+
 def initiate(end_year, scrape_length):
     if scrape_length == "All":
         for year in range (2013, end_year+1):
@@ -46,7 +52,7 @@ def initiate(end_year, scrape_length):
 
     end_time = time()
     elapsed_time = float(end_time - start_time)
-    print "\n\nfangraphs_prospect_scraper.py"
+    print "\n\nminorleagueball_prospect_scraper.py"
     print "time elapsed (in seconds): " + str(elapsed_time)
     print "time elapsed (in minutes): " + str(elapsed_time/60.0)
 

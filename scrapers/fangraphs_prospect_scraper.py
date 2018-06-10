@@ -7,15 +7,18 @@ import sys
 from time import time, sleep, mktime
 import argparse
 
+
 from py_db import db
 import prospect_helper as helper
 
 
 db = db("mlb_prospects")
 
-sleep_time = 2
+
+sleep_time = 3
 base_url = "https://www.fangraphs.com/scoutboard.aspx"
 current_page = 1
+
 
 start_time = time()
 
@@ -37,7 +40,9 @@ def initiate(end_year, scrape_length):
 
 
 def process(year):
-    for list_type, list_key in {"professional":"prospect","draft":"mlb","international":"int"}.items():
+    # for list_type, list_key in {"draft":"mlb","professional":"prospect","international":"int"}.items():
+    for list_type, list_key in {"draft":"mlb"}.items():
+
 
         if ((list_type=="professional" and year > 2016) or 
             (list_type=="draft" and year > 2014) or 
@@ -78,22 +83,8 @@ def process_list_page(year, list_type, list_key, list_sub_url, page, players_per
     for cnt, row in enumerate(rows):
         if list_type == "professional":
             process_professional(year, row, (page-1)*players_per_page+cnt+1, max_players)
-            entry = None
         else:
-            entry = process_amateur(year, row, list_type, (page-1)*players_per_page+cnt+1, max_players)
-
-        if entry != None:
-            entries.append(entry)
-
-    if list_type == "draft":
-        table = "fg_prospects_draft"
-    elif list_type == "international":
-        table = "fg_prospects_international"
-
-    if entries != []:
-        for i in range(0, len(entries), 10000):
-            db.insertRowDict(entries[i: i + 10000], table, insertMany=True, replace=True, rid=0,debug=1)
-            db.conn.commit()
+            process_amateur(year, row, list_type, (page-1)*players_per_page+cnt+1, max_players)
 
 
 def process_professional(year, row, cnt, max_players):
@@ -102,6 +93,9 @@ def process_professional(year, row, cnt, max_players):
     elements = row.findAll(True, {"class":["grid_line_regular", "grid_line_break"]})
 
     full_name = elements[0].getText()
+    if full_name.strip() == "":
+        return None
+
     full_name, fname, lname = helper.adjust_fg_names(full_name)
 
     prospect_url_base = "https://www.fangraphs.com/"
@@ -206,11 +200,20 @@ def process_amateur(year, row, list_type, cnt, max_players):
     elements = row.findAll(True, {"class":["grid_line_regular", "grid_line_break"]})
 
     if list_type == "draft":
-        element_dict = {0:"rank", 3:"draft_age", 5:"weight", 6:"bats", 7:"throws", 8:"school", 9:"fv", 11:"video"}
-        height_index = 4
-        blurb_index = 10
+        element_dict = {0:"rank", 1:"top100", 7:"weight", 8:"bats", 9:"throws", 10:"school", 11:"college_commit", 12:"athleticism", 13:"frame", 14:"performance", 15:"fv", 16:"risk", 18:"video"}
+        pick_index = 2
+        name_index = 3
+        position_index = 4
+        age_index = 5
+        age_name = "draft_age"
+        height_index = 6
+        blurb_index = 17
     elif list_type == "international":
-        element_dict = {0:"rank", 3:"j2_age", 4:"country", 5:"height", 6:"weight", 7:"bats", 8:"throws", 9:"fv", 10:"risk", 11:"proj_team", 13:"video"}
+        element_dict = {0:"rank", 4:"country", 5:"height", 6:"weight", 7:"bats", 8:"throws", 9:"fv", 10:"risk", 11:"proj_team", 13:"video"}
+        name_index = 1
+        position_index = 2
+        age_index = 3
+        age_name ="j2_age"
         height_index = 5
         blurb_index = 12
 
@@ -226,11 +229,11 @@ def process_amateur(year, row, list_type, cnt, max_players):
             else:
                 entry[i_val] = e.getText()
 
-    full_name = elements[1].getText()
+    full_name = elements[name_index].getText().replace("**","")
     full_name, fname, lname = helper.adjust_fg_names(full_name)
     print "\t\t", year, list_type, str(cnt) + " of " + str(max_players), full_name
 
-    age = elements[3].getText()
+    age = elements[age_index].getText()
     age = helper.adjust_fg_age(full_name, year, list_type, age)
     try:
         lower_year, upper_year = helper.est_fg_birthday(age, year, list_type)
@@ -260,27 +263,54 @@ def process_amateur(year, row, list_type, cnt, max_players):
     except ValueError:
         height = 0
 
-    position = elements[2].getText()
+    position = elements[position_index].getText()
     position = helper.adjust_fg_positions2(full_name, position)
 
     try:
-        blurb_split = "Report"+elements[1].getText()
+        blurb_split = "Report"+elements[name_index].getText()
         blurb = elements[blurb_index].getText().split(blurb_split)[1]
         blurb = "".join([i if ord(i) < 128 else "" for i in blurb])
     except IndexError:
         blurb = ""
 
+    blurb = blurb.replace("TLDR", "Brief:\n").replace("Full Report", "\n\nFull Report:\n")
+
+    if "-" in entry["fv"]:
+        print entry["fv"]
+        entry["fv"] = int(str(entry["fv"])[0:-1]) - 2
+    elif "+" in entry["fv"]:
+        entry["fv"] = int(str(entry["fv"])[0:-1]) + 2
+
+    if list_type == "draft":
+        try:
+            pick_detail = elements[pick_index].getText()
+            pick_team = pick_detail.split("/")[0]
+            pick_num = pick_detail.split("/")[1]
+        except IndexError:
+            pick_team = None
+            pick_num = None
+
+        entry["pick_team"] = pick_team
+        entry["pick_num"] = pick_num
+
     entry["full_name"] = full_name
     entry["fname"] = fname
     entry["lname"] = lname
-    entry[element_dict.get(3)] = age
+    entry[age_name] = age
     entry["est_years"] = est_years
     entry["prospect_id"] = prospect_id
     entry["height"] = height
     entry["position"] = position
     entry["blurb"] = blurb
 
-    return entry
+
+    if list_type == "draft":
+        table = "fg_prospects_draft"
+    elif list_type == "international":
+        table = "fg_prospects_international"
+
+    db.insertRowDict(entry, table, replace=True, debug=1)
+    db.conn.commit()
 
 
 def process_fangraphs_url(player_url):
@@ -290,8 +320,11 @@ def process_fangraphs_url(player_url):
 
     player_soup = BeautifulSoup(player_utf_data, "lxml")
 
-    birthdate = player_soup.find(class_ = "player-info-bio").getText().split("Birthdate: ")[1].split("(")[0].strip()
-    birth_month, birth_day, birth_year = birthdate.split("/")
+    try:
+        birthdate = player_soup.find(class_ = "player-info-bio").getText().split("Birthdate: ")[1].split("(")[0].strip()
+        birth_month, birth_day, birth_year = birthdate.split("/")
+    except ValueError:
+        return None, None, None, None, None, None, None
 
     try:
         report_info = player_soup.find(class_ = "prospects-report").find("span")
@@ -340,17 +373,35 @@ def process_scouting_grades(reported, fg_id, scouting_dict):
     for k, v in scouting_dict.items():
         if player_type == "hitters":
             if k in hitter_cats:
-                entry[k+"_present"] = v.split(" / ")[0].strip()
-                entry[k+"_future"] = v.split(" / ")[1].strip()
+                grade_present = v.split(" / ")[0].strip()
+                grade_future = v.split(" / ")[1].strip()
+                if grade_present < 8:
+                    grade_present = grade_present*10
+                if grade_future < 8:
+                    grade_future = grade_future*10
+                entry[k+"_present"] = grade_present
+                entry[k+"_future"] = grade_future
             elif k != "Future Value":
                 print "\n\n**ERROR TAG** NO CATEGORY", k, "\t", v, "\n\n"
         elif player_type == "pitchers":
             if k in pitcher_cats:
-                entry[k+"_present"] = v.split(" / ")[0].strip()
-                entry[k+"_future"] = v.split(" / ")[1].strip()
+                grade_present = v.split(" / ")[0].strip()
+                grade_future = v.split(" / ")[1].strip()
+                if grade_present < 8:
+                    grade_present = grade_present*10
+                if grade_future < 8:
+                    grade_future = grade_future*10
+                entry[k+"_present"] = grade_present
+                entry[k+"_future"] = grade_future
             elif k != "Future Value":
-                entry["Other_present"] = v.split(" / ")[0].strip()
-                entry["Other_future"] = v.split(" / ")[1].strip()
+                grade_present = v.split(" / ")[0].strip()
+                grade_future = v.split(" / ")[1].strip()
+                if grade_present < 8:
+                    grade_present = grade_present*10
+                if grade_future < 8:
+                    grade_future = grade_future*10
+                entry["Other_present"] = grade_present
+                entry["Other_future"] = grade_future
 
     table = "fg_grades_%s" % (player_type)
     db.insertRowDict(entry, table, replace=True, debug=1)
@@ -365,5 +416,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     initiate(args.end_year, args.scrape_length)
-
 

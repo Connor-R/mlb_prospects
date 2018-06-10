@@ -11,7 +11,9 @@ from py_db import db
 db = db("mlb_prospects")
 
 
-# We want to clear all entries for a given year so there aren't duplicates when we re-scrape (like if a fangraphs players gets a new player_id, there would be a duplicate)
+# We want to clear all entries for a given year where a player doesn't have a prospect_id so there aren't duplicates when we re-scrape
+
+
 
 def initiate(end_year, delete_length):
     start_time = time()
@@ -33,15 +35,15 @@ def initiate(end_year, delete_length):
 def process(delete_year):
     """
     Deleting the entries for a given year from the mlb_prospects tables and fg_prospects tables. 
-    We leave the grades tablesas-is, since we want to keep duplicate records for grades.
+    We leave the grades tables as-is, since we want to keep duplicate records for grades.
     """
 
     print delete_year
-    for table in ("mlb_prospects_international", "mlb_prospects_draft", "mlb_prospects_professional", "fg_prospects_international", "fg_prospects_draft", "fg_prospects_professional", "minorleagueball_professional"):
+    for table in ("mlb_prospects_international", "mlb_prospects_draft", "mlb_prospects_professional", "fg_prospects_international", "fg_prospects_draft", "fg_prospects_professional",):
 
-        print "\tDeleting", str(delete_year), "entries from", table
+        print "\tDeleting", str(delete_year), "null entries from", table
 
-        delete_qry = "DELETE FROM %s WHERE year = %s;"
+        delete_qry = "DELETE FROM %s WHERE year = %s AND prospect_id = 0;"
 
         delete_query = delete_qry % (table, delete_year)
 

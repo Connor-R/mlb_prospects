@@ -7,6 +7,9 @@ db = db("mlb_prospects")
 
 
 def id_lookup(fname, lname, lower_year, upper_year):
+    """
+    Tries to find the prospect_id given a prospects first name (fname), last name (lname), and a range of years they could have been born in (lower_year, upper_year)
+    """
     if fname in ("Mike", "Michael"):
         fname_search = "Mi"
     elif fname in ("Nick", "Nicholas"):
@@ -70,6 +73,11 @@ def id_lookup(fname, lname, lower_year, upper_year):
 
 
 def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type):
+    """
+    Looks up a prospets prospect_id given their first name (fname) last name (lname), site id (site_id), site (p_type), and birthdate (byear, bmonth, bday).
+    If no prospect is found, adds the player to the professional_prospects table and returns the newly created prospect_id.
+    """
+
     if fname in ("Mike", "Michael"):
         fname_search = "Mi"
     elif fname in ("Nick", "Nicholas"):
@@ -199,6 +207,10 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type):
 
 
 def est_fg_birthday(age, year, list_type):
+    """
+    Estimates a player's birthday given their listed age (age), what year (year) and whether they are a draft or international prospect (list_type).
+    """
+
     if list_type == "draft":
         reference_date = datetime(year=year, month=06, day=15)
     elif list_type == "international":
@@ -222,6 +234,9 @@ def est_fg_birthday(age, year, list_type):
 
 
 def adjust_mlb_names(mlb_id, fname, lname):
+    """
+    Adjusts a prospect's first and last name (fname, lname) given their mlb.com player_id for better usage in matching to the professional_prospects table.
+    """
     names_dict = {
     "clark_trenton": ["Trent", "Grisham"],
     "deleon_juan": ["Juan", "De Leon"],
@@ -269,22 +284,30 @@ def adjust_mlb_names(mlb_id, fname, lname):
         return fname, lname
 
 
-def adjust_mlb_positions(mlb_id, positions):
-    positions_dict = {
+def adjust_mlb_positions(mlb_id, position):
+    """
+    Adjusts a prospect's position given their mlb.com player_id (mlb_id).
+    Not heavily necessary unless a player has been mis-classified as a pitcher when they should be a hitter or vice versa.
+    """
+    position_dict = {
     "ryan_ryder": "RHP",
     "taylor_blake": "LHP",
     642130: "LHP",
     669160: "RHP",
     }
 
-    if mlb_id in positions_dict:
-        positions = positions_dict.get(mlb_id)
-        return positions
+    if mlb_id in position_dict:
+        position = position_dict.get(mlb_id)
+        return position
     else:
-        return positions
+        return position
 
 
 def adjust_mlb_birthdays(mlb_id, byear, bmonth, bday):
+    """
+    Adjusts a prospect's birthday given their mlb.com birthdate (byear, bmonth, bday).
+    Mostly used in adjusted wrong birthdates for draft prospects in earlier seasons.
+    """
     birthday_dict = {
     "allen_logan":[1997,5,23],
     "aracena_ricky":[1997,10,2],
@@ -343,6 +366,10 @@ def adjust_mlb_birthdays(mlb_id, byear, bmonth, bday):
 
 
 def adjust_fg_names(full_name):
+    """
+    Splits a players full name into first and last names and returns those values.
+    Also will adjust a player's name if their name has been listed non ideally so we can better match them to the professional_prospects table.
+    """
     names_dict = {
     "Abraham Gutierrez": ["Abrahan", "Gutierrez"],
     "Adam Brett Walker": ["Adam Brett", "Walker"],
@@ -366,6 +393,8 @@ def adjust_fg_names(full_name):
     "Vladimir Guerrero, Jr.": ["Vladimir", "Guerrero Jr."],
     "Yordy Barley": ["Jordy", "Barley"],
     "Adolis Garcia": ["Jose Adolis", "Garcia"],
+    "Lenny Torres, Jr.": ["Lenny", "Torres Jr."],
+    "Joe Gray, Jr.": ["Joe", "Gray Jr."]
     }
 
     if full_name in names_dict:
@@ -378,6 +407,10 @@ def adjust_fg_names(full_name):
 
 
 def adjust_fg_positions(fg_id, positions):
+    """
+    Adjusts a prospect's position given their fangraphs player_id (fg_id).
+    Not heavily necessary unless a player has been mis-classified as a pitcher when they should be a hitter or vice versa.
+    """
     positions_dict = {
     }
 
@@ -389,6 +422,10 @@ def adjust_fg_positions(fg_id, positions):
 
 
 def adjust_fg_positions2(full_name, position):
+    """
+    Adjusts a prospect's position given their fangraphs player_id (fg_id).
+    Not heavily necessary unless a player has been mis-classified as a pitcher when they should be a hitter or vice versa.
+    """
     names_dict = {
     }
  
@@ -400,6 +437,9 @@ def adjust_fg_positions2(full_name, position):
 
 
 def adjust_fg_birthdays(fg_id, byear, bmonth, bday): 
+    """
+    Adjusts a prospect's birthday given their fangraphs birthdate (byear, bmonth, bday) and fangraphs id (fg_id).
+    """
     birthday_dict = {
     "14510": ["14510", 1993, 7, 1],
     "16401": ["16401", 1993, 12, 26],
@@ -415,6 +455,9 @@ def adjust_fg_birthdays(fg_id, byear, bmonth, bday):
 
 
 def adjust_fg_age(full_name, year, list_type, age):
+    """
+    Adjusts a prospect's age given their fangraphs listed age (age).
+    """
     age_search = full_name + "_" + str(year) + "_" + str(list_type)
 
     ages_dict = {
@@ -430,6 +473,11 @@ def adjust_fg_age(full_name, year, list_type, age):
 
 
 def adjust_minorleagueball_name(full_name, year, team_abb):
+    """
+    Splits a players minorleagueball full name into first and last names and returns those values.
+    Also will adjust a player's name if their name has been listed non ideally so we can better match them to the professional_prospects table.
+    """
+
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
     names_dict = {
@@ -490,6 +538,10 @@ def adjust_minorleagueball_name(full_name, year, team_abb):
 
 
 def adjust_minorleagueball_position(full_name, year, team_abb, position):
+    """
+    Adjusts a prospect's position given their minorleagueball full name, year, and team.
+    Used primaily to hardcode positions for player's who have had their original name parsing go astray.
+    """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
     positions_dict = {
@@ -514,11 +566,16 @@ def adjust_minorleagueball_position(full_name, year, team_abb, position):
 
 
 def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
+    """
+    Adjusts a player's minorleagueball birthyear to better determine their age to match to the professional_prospects table.
+    If no adjustment is needed, returns the original estimate for their birthyear.
+    """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
     years_dict = {
     "AbrahamToro-Hernandez_2018_hou": 1998,
     "AnyeloGomez_2018_atl": 1993,
+    "AustinBeck_2018_oak": 1998,
     "BradKeller_2018_kc": 1995,
     "CarlosTocci_2017_phi": 1996,
     "DanielPalka_2017_min": 1992,
@@ -528,7 +585,7 @@ def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
     "MitchGarver_2017_min": 1992,
     "NickGordon_2017_min": 1996,
     "StephenGonsalves_2017_min": 1995,
-    "WanderJavier_2017_min": 2000,    
+    "WanderJavier_2017_min": 2000,
     }
 
     if search_str in years_dict:
@@ -539,6 +596,11 @@ def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
 
 
 def adjust_minorleagueball_grade(full_name, year, team_abb, grade):
+    """
+    Adjusts a prospect's grade given their minorleagueball full name, year, team, and grade.
+    If no adjustment is needed, returns the original grade.
+    Used primaily to hardcode positions for player's who have had their original grade parsing go astray.
+    """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
     grades_dict = {
@@ -559,6 +621,11 @@ def adjust_minorleagueball_grade(full_name, year, team_abb, grade):
 
 
 def adjust_minorleagueball_eta(full_name, year, team_abb, eta):
+    """
+    Adjusts a prospect's eta given their minorleagueball full name, year, team, and eta.
+    If no adjustment is needed, returns the original eta.
+    Used primaily to hardcode positions for player's who have had their original blurb parsing go astray.
+    """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
     eta_dict = {
@@ -574,9 +641,5 @@ def adjust_minorleagueball_eta(full_name, year, team_abb, eta):
         eta = eta_dict.get(search_str)
 
     return eta
-
-
-
-
 
 

@@ -8,6 +8,7 @@ import codecs
 import argparse
 from time import time, sleep
 
+
 from py_data_getter import data_getter
 from py_db import db
 import prospect_helper as helper
@@ -16,7 +17,7 @@ import prospect_helper as helper
 db = db("mlb_prospects")
 getter = data_getter()
 
-sleep_time = 0
+sleep_time = 3
 
 base_url = "http://m.mlb.com/gen/players/prospects/%s/playerProspects.json"
 player_base_url = "http://m.mlb.com/gen/players/prospects/%s/%s.json"

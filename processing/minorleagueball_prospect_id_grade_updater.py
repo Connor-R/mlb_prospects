@@ -11,12 +11,16 @@ db = db("mlb_prospects")
 def initiate():
     start_time = time()
 
+    clear_ids = "UPDATE minorleagueball_professional SET prospect_id = 0;"
+    db.query(clear_ids)
+    db.conn.commit()
+
     process_primary_update()
     process_secondary_update()
 
     end_time = time()
     elapsed_time = float(end_time - start_time)
-    print "\n\nprospect_grades.py"
+    print "\n\nminorleagueball_prospect_id_grade_updater.py"
     print "time elapsed (in seconds): " + str(elapsed_time)
     print "time elapsed (in minutes): " + str(elapsed_time/60.0)
 
@@ -58,7 +62,43 @@ def process_primary_update():
 
 
 def process_secondary_update():
-    pass
+    """
+    Finds each player without a prospect id and matches them (via name/team) to a prospect +/- 1 year with a prospect id and then updates the id-less player.
+    Iterates through until there are no players with a +/- 1 year match.
+    """
+    test = True
+    while test == True:
+        test_qry = """SELECT *
+    FROM (SELECT *, YEAR AS 'yr' FROM minorleagueball_professional) p1
+    JOIN (SELECT *, (YEAR-1) AS 'yr' FROM minorleagueball_professional) p2 USING (yr, team, fname, lname)
+    WHERE p1.prospect_id != p2.prospect_id
+    ORDER BY p1.year ASC, p1.team ASC, p1.team_rank ASC;"""
+        test_val = db.query(test_qry)
+
+        if test_val == ():
+            test = False
+        print(test)
+
+        for yr in range(2013, 2019):
+            qry = """SELECT 
+        p1.team, p1.fname, p1.lname, 
+        p1.year, p1.prospect_id,
+        p2.year, p2.prospect_id
+        FROM (SELECT *, YEAR AS 'yr' FROM minorleagueball_professional) p1
+        JOIN (SELECT *, (YEAR-1) AS 'yr' FROM minorleagueball_professional) p2 USING (yr, team, fname, lname)
+        WHERE p1.prospect_id != p2.prospect_id
+        AND p1.year = %s
+        ORDER BY p1.year ASC, p1.team ASC, p1.team_rank ASC;"""
+            query = qry % (yr)
+            res = db.query (query)
+
+            for row in res:
+                team, fname, lname, yr1, pid1, yr2, pid2 = row
+
+                if pid1 == 0:
+                    update_prospect(yr1, team, fname, lname, "prospect_id", pid2)
+                elif pid2 == 0:
+                    update_prospect(yr2, team, fname, lname, "prospect_id", pid1)
     
 
 def update_prospect(year, team, fname, lname, category, value):
