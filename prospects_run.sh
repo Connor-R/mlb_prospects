@@ -31,7 +31,8 @@ python processing/master_prospect_tables.py
 
 wait
 
-csvtotable /Users/connordog/Dropbox/Desktop_Files/Baseball/NSBL/_master_prospects.csv /Users/connordog/Dropbox/Desktop_Files/Work_Things/connor-r.github.io/Tables/master_prospects.html -c "MLB Prospect Dataset (via mlb.com, fangraphs.com, minorleagueball.com)" -o
+csvtotable /Users/connordog/Dropbox/Desktop_Files/Baseball/NSBL/_master_prospects.csv /Users/connordog/Dropbox/Desktop_Files/Work_Things/connor-r.github.io/Tables/master_prospects.html -c "MLB Prospect Dataset (via mlb.com, fangraphs.com, minorleagueball.com)" -o -vs 15
+python /Users/connordog/Dropbox/Desktop_Files/Work_Things/connor-r.github.io/Tables/google_analytics_appender.py --file_path "/Users/connordog/Dropbox/Desktop_Files/Work_Things/connor-r.github.io/Tables/master_prospects.html"
 
 cd /Users/connordog/Dropbox/Desktop_Files/Work_Things/connor-r.github.io
 git add Tables/master_prospects.html
