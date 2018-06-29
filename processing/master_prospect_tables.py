@@ -12,7 +12,7 @@ year = 2018
 def initiate():
     start_time = time()
 
-    print "\n\ndeleteing _master_prospects"
+    print "\n\ndeleting _master_prospects"
     del_qry = """DROP TABLE IF EXISTS _master_prospects;"""
     del_query = del_qry
     db.query(del_query)
@@ -36,6 +36,7 @@ def initiate():
 
     print "\nexporting master to .csv"
     export_masterCSV("_master_prospects")
+    export_masterCSV("_master_current")
 
 
     end_time = time()
@@ -296,15 +297,16 @@ def update_tables(year):
     COALESCE(m.fg_pit_OFP_present, m.fg_hit_OFP_present) AS fg_OFP_present,
     COALESCE(m.fg_pit_OFP_future, m.fg_hit_OFP_future) AS fg_OFP_future,
     COALESCE(m.mlb_pit_OFP, m.mlb_hit_OFP) AS mlb_OFP,
-    "|" AS "*flags*", m.sleeper, m.breakout, m.upside, m.personal_traits,
     "|" AS "*rnk*", m.fg100, m.mlbp_top100, m.fgd_top100, m.fgd_rank, m.mlbd_rank,
-    "|" AS "*eta*", m.fg_eta, m.mi_eta, m.mlbp_eta,
-    "|" AS "*intang*", m.fg_athleticiscm, m.fg_frame, m.fg_performance,
-    "|" AS "*extras*", m.mi_blurb, mlbp_blurb, fgd_blurb, mlbd_blurb, fg_video, fgd_video,
     "|" AS "*bio*", m.prospect_id, m.height, m.weight, 
-    "|" AS "*team*", m.fg_team, m.mi_team, m.mlbp_team, m.fgd_pick_team, m.fgd_pick_num, m.fg_signed, m.fg_signedFrom, m.mlbp_signed, 
-    "|" AS "*edu*", m.fgd_school, m.fgd_college_commit, m.mlbd_school, m.mlbd_grade,
+    "|" AS "*eta*", m.fg_eta, m.mi_eta, m.mlbp_eta,
+    "|" AS "*extras*", m.mi_blurb, mlbp_blurb, fgd_blurb, mlbd_blurb, fg_video, fgd_video,
     "|" AS "*nsbl*", cr.team_abb AS "NSBL_team", cr.salary, cr.year AS "contract",
+    "|" AS "*sign*", m.fgd_pick_team, m.fgd_pick_num, m.fg_signed, m.fg_signedFrom, m.mlbp_signed, 
+    "|" AS "*edu*", m.fgd_school, m.fgd_college_commit, m.mlbd_school, m.mlbd_grade, 
+    "|" AS "*team*", m.fg_team, m.mi_team, m.mlbp_team, 
+    "|" AS "*flags*", m.sleeper, m.breakout, m.upside, m.personal_traits,
+    "|" AS "*intang*", m.fg_athleticiscm, m.fg_frame, m.fg_performance,
     "|" AS "*fg hit*",
     m.Hit_present, m.GamePower_present, m.RawPower_present, m.Speed_present, m.Field_present, m.Throws_present,
     m.Hit_future, m.GamePower_future, m.RawPower_future, m.Speed_future, m.Field_future, m.Throws_future,
@@ -319,6 +321,7 @@ def update_tables(year):
     LEFT JOIN NSBL.current_rosters_excel cr ON (cr.player_name LIKE CONCAT(m.first_name, "%%") AND cr.player_name LIKE CONCAT("%%", m.last_name))
     LEFT JOIN _shortlisted s USING (first_name, last_name)
     WHERE m.year = @cur_year
+    AND (!(cr.player_name = "Will Smith" AND cr.expires = 2021) OR cr.player_name IS NULL)
     ORDER BY superAdj_FV DESC, adj_FV DESC, avg_FV DESC, FV_pts DESC, FV_weight DESC, age ASC
     ;
     # create semi-temporary rank table
@@ -464,7 +467,7 @@ def export_masterCSV(table_name):
     for col_name in col_names:
         columns.append(col_name[0])
 
-    csv_title = "/Users/connordog/Dropbox/Desktop_Files/Baseball/NSBL/%s.csv" % (table_name)
+    csv_title = "/Users/connordog/Dropbox/Desktop_Files/Work_Things/connor-r.github.io/csvs/%s.csv" % (table_name.replace("_",""))
     csv_file = open(csv_title, "wb")
     append_csv = csv.writer(csv_file)
     append_csv.writerow(columns)
@@ -477,7 +480,7 @@ def export_masterCSV(table_name):
         row = list(row)
         for i, val in enumerate(row):
             if type(val) in (str,):
-                row[i] = "".join([l if ord(l) < 128 else "" for l in val])
+                row[i] = "".join([l if ord(l) < 128 else "" for l in val]).replace(",","-").replace("<o>","").replace("<P>","").replace("\n","  ")
         append_csv.writerow(row)
 
 
