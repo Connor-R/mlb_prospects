@@ -6,11 +6,8 @@ from py_db import db
 db = db("mlb_prospects")
 
 
-def id_lookup(fname, lname, lower_year, upper_year):
-    """
-    Tries to find the prospect_id given a prospects first name (fname), last name (lname), and a range of years they could have been born in (lower_year, upper_year)
-    """
-    if fname in ("Mike", "Michael"):
+def fname_lookup(fname):
+    if fname in ("Mike", "Michael", "Mikey"):
         fname_search = "Mi"
     elif fname in ("Nick", "Nicholas"):
         fname_search = "Nic"
@@ -30,8 +27,23 @@ def id_lookup(fname, lname, lower_year, upper_year):
         fname_search = "Ton"
     elif fname in ("Jon", "John", "Jonny", "Johnny", "Jonathan"):
         fname_search = "Jo"
+    elif fname in ("Jazz", "Jasrado"):
+        fname_search = "Ja"
+    elif fname in ("Stephen", "Steve", "Steven"):
+        fname_search = "Ste"
+    elif fname in ("Nathan", "Nathaniel", "Nate"):
+        fname_search = "Nat"
     else:
         fname_search = fname
+
+    return fname_search
+
+
+def id_lookup(fname, lname, lower_year, upper_year):
+    """
+    Tries to find the prospect_id given a prospects first name (fname), last name (lname), and a range of years they could have been born in (lower_year, upper_year)
+    """
+    fname_search = fname_lookup(fname)
 
     search_qry = """SELECT prospect_id, birth_year, birth_month, birth_day, COUNT(*)
     FROM professional_prospects 
@@ -72,37 +84,31 @@ def id_lookup(fname, lname, lower_year, upper_year):
     return prospect_id, byear, bmonth, bday
 
 
-def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type):
+def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='all'):
     """
     Looks up a prospets prospect_id given their first name (fname) last name (lname), site id (site_id), site (p_type), and birthdate (byear, bmonth, bday).
     If no prospect is found, adds the player to the professional_prospects table and returns the newly created prospect_id.
     """
 
-    if fname in ("Mike", "Michael"):
-        fname_search = "Mi"
-    elif fname in ("Nick", "Nicholas"):
-        fname_search = "Nic"
-    elif fname in ("Jake", "Jacob", "Jakob"):
-        fname_search = "Ja"
-    elif fname in ("Tom", "Thomas"):
-        fname_search = "om"
-    elif fname in ("Luke", "Lucas", "Lukas"):
-        fname_search = "Lu"
-    else:
-        fname_search = fname
-        
-    check_qry = """SELECT prospect_id
-    FROM professional_prospects
-    WHERE(
-        (mlb_id = "%s" AND mlb_id != 0)
+    fname_search = fname_lookup(fname)
+
+    if id_type == 'all':
+        qry_add = """((mlb_id = "%s" AND mlb_id != 0)
         OR (mlb_draft_id = "%s" AND mlb_draft_id IS NOT NULL)
         OR (mlb_international_id = "%s" AND mlb_international_id IS NOT NULL)
         OR (fg_minor_id = "%s" AND fg_minor_id IS NOT NULL)
-        OR (fg_major_id = "%s" AND fg_major_id IS NOT NULL)
-    );
+        OR (fg_major_id = "%s" AND fg_major_id IS NOT NULL))""" % (site_id, site_id, site_id, site_id, site_id)
+    else:
+        qry_add = """(%s = "%s" AND (%s != 0 OR %s IS NOT NULL))""" % (id_type, site_id, id_type, id_type)
+        
+    check_qry = """SELECT prospect_id
+    FROM professional_prospects
+    WHERE 1
+        AND %s
+    ;
     """
 
-    check_query = check_qry % (site_id, site_id, site_id, site_id, site_id)
+    check_query = check_qry % (qry_add)
     check_val = db.query(check_query)
 
     if check_val != ():
@@ -158,6 +164,8 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type):
                 f_name = "fg_fname"
                 l_name = "fg_lname"
 
+            print "\n\n\t\t\tadding", fname, lname, id_column, site_id, '\n\n'
+
             for col, val in {f_name:fname, l_name:lname, id_column:site_id}.items():
 
                 if col in ("mlb_id",):
@@ -171,6 +179,7 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type):
                 %s
                 WHERE prospect_id = %s 
                 %s;"""
+
 
                 update_query = update_qry % (set_str, prospect_id, set_str2)
                 db.query(update_query)
@@ -201,6 +210,7 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type):
             db.insertRowDict(entry, "professional_prospects", debug=1)
             db.conn.commit()
 
+            print check_query
             recheck_val = db.query(check_query)
             prospect_id = recheck_val[0][0]
             return prospect_id
@@ -211,7 +221,7 @@ def est_fg_birthday(age, year, list_type):
     Estimates a player's birthday given their listed age (age), what year (year) and whether they are a draft or international prospect (list_type).
     """
 
-    if list_type == "draft":
+    if list_type in ("draft", "professional"):
         reference_date = datetime(year=year, month=06, day=15)
     elif list_type == "international":
         reference_date = datetime(year=year, month=07, day=02)
@@ -356,6 +366,8 @@ def adjust_mlb_birthdays(mlb_id, byear, bmonth, bday):
     "wise_carl":[1994,5,25],
     "woodford_jake":[1996,10,28],
     "zagunis_mark":[1993,2,5],
+    "gingery_steven":[1997,9,23],
+    "weathers_ryan":[1999,12,17]
     }
 
     if mlb_id in birthday_dict:
@@ -394,7 +406,7 @@ def adjust_fg_names(full_name):
     "Yordy Barley": ["Jordy", "Barley"],
     "Adolis Garcia": ["Jose Adolis", "Garcia"],
     "Lenny Torres, Jr.": ["Lenny", "Torres Jr."],
-    "Joe Gray, Jr.": ["Joe", "Gray Jr."]
+    "Joe Gray, Jr.": ["Joe", "Gray Jr."],
     }
 
     if full_name in names_dict:
@@ -445,11 +457,16 @@ def adjust_fg_birthdays(fg_id, byear, bmonth, bday):
     "16401": ["16401", 1993, 12, 26],
     "sa293098": ["sa874117", 1995, 10, 2],
     "sa392969": ["sa829387", 1997, 2, 24],
+    "sa3008139": ["sa3008139", 1997, 3, 15],
+    "sa915815": ["sa915815", 1996, 4, 2],
+    "sa3007051": ["sa3007051", 1997, 6, 3],
+    "16207": ["16207", 1992, 9, 18],
+    "sa3007744": ["sa3007744", 2000, 12, 22],
     }
 
     if fg_id in birthday_dict:
         fg_id2, byear, bmonth, bday = birthday_dict.get(fg_id)
-        return fg_id2,byear, bmonth, bday
+        return fg_id2, byear, bmonth, bday
     else:
         return fg_id, byear, bmonth, bday
 

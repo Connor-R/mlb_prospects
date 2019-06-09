@@ -178,7 +178,11 @@ def process_hitters():
         if blurb[:4] == '\nPDP':
             continue
 
-        hit = int(blurb.split("Hit")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+        print blurb
+        try:
+            hit = int(blurb.split("Hit")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+        except IndexError:
+            hit = int(blurb.split("Scouting grades")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         if hit < 20:
             hit = hit*10
         power = int(blurb.split("Power")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])

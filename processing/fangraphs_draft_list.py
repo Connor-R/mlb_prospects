@@ -10,22 +10,21 @@ db = db("mlb_prospects")
 
 def process():
 
-    mlb_bat_url = 'http://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=c,3,4,6,11,12,13,21,22,-1,34,35,40,-1,44,43,45,41,-1,23,37,38,50,61,-1,53,111,54,56,58&season=2018&month=0&season1=2017&ind=0&team=0&rost=0&age=0&filter=&players='
+    mlb_bat_url = 'http://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=c,3,4,6,11,12,13,21,22,-1,34,35,40,-1,44,43,45,41,-1,23,37,38,50,61,-1,53,111,54,56,58&season=2019&month=0&ind=0&team=0&rost=0&age=0&filter=&players='
 
-    mlb_pit_url = 'http://www.fangraphs.com/leaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,3,4,5,11,7,8,13,-1,36,37,40,120,121,43,-1,44,48,51,-1,76,6,117,45,118,62,119,122,124,-1,59&season=2018&month=0&season1=2017&ind=0&team=0&rost=0&age=0&filter=&players='
+    mlb_pit_url = 'http://www.fangraphs.com/leaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,3,4,5,11,7,8,13,-1,36,37,40,120,121,43,-1,44,48,51,-1,76,6,117,45,118,62,119,122,124,-1,59&season=2019&month=0&season1=2017&ind=0&team=0&rost=0&age=0&filter=&players='
 
-    all_bat_url = 'http://www.fangraphs.com/minorleaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=c,4,6,11,21,22,-1,24,25,30,32,-1,23,27,28,35,36,-1,31,33,34&season=2018&team=0&players='
+    all_bat_url = 'http://www.fangraphs.com/minorleaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=c,4,6,11,21,22,-1,24,25,30,32,-1,23,27,28,35,36,-1,31,33,34&season=2019&team=0&players='
     
-    all_pit_url = 'http://www.fangraphs.com/minorleaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,4,5,11,7,8,12,23,-1,24,25,26,27,-1,28,29,36,-1,30,31,32,-1,40,52,-1,6,34,35,37,23&season=2018&team=0&players='
+    all_pit_url = 'http://www.fangraphs.com/minorleaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,4,5,11,7,8,12,23,-1,24,25,26,27,-1,28,29,36,-1,30,31,32,-1,40,52,-1,6,34,35,37,23&season=2019&team=0&players='
 
 
     get_players = """SELECT 
-    mlb_id,
-    fg_minor_id, 
-    fg_major_id,
+    p.mlb_id,
+    p.fg_minor_id, 
+    p.fg_major_id,
     position,
-    CONCAT(first_name, " ", last_name) as full_name,
-    shortlist_value, sleeper, breakout, upside, personal_traits, avg_FV
+    CONCAT(COALESCE(p.mlb_fname, p.fg_fname), " ", COALESCE(p.mlb_lname, p.fg_lname)) as full_name
     FROM _draft_list d
     JOIN professional_prospects p USING (prospect_id);"""
 
@@ -43,7 +42,7 @@ def process():
     mlb_pit = 0
 
     for player in players:
-        mlb_id, fg_minor_id, fg_major_id, position, full_name, shortlist_value, sleeper, breakout, upside, personal_traits, avg_FV = player
+        mlb_id, fg_minor_id, fg_major_id, position, full_name = player
 
         if fg_minor_id is not None or fg_major_id is not None:
             all_cnt += 1

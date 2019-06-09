@@ -17,7 +17,7 @@ import prospect_helper as helper
 db = db("mlb_prospects")
 getter = data_getter()
 
-sleep_time = 3
+sleep_time = 1
 
 base_url = "http://m.mlb.com/gen/players/prospects/%s/playerProspects.json"
 player_base_url = "http://m.mlb.com/gen/players/prospects/%s/%s.json"

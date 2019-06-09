@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 source "/Users/connordog/.bash_profile"
 
-year=2018
+year=2019
 
 python processing/prospect_db_rescrape_prep.py --end_year "$year" --delete_length "Current"
 
@@ -19,11 +19,15 @@ python scrapers/fangraphs_prospect_scraper.py --end_year "$year" --scrape_length
 
 wait
 
-python scrapers/minorleagueball_prospect_scraper.py --end_year "$year" --scrape_length "Current"
+python processing/fangraphs_prospect_parser.py --end_year "$year" --scrape_length "Current"
 
 wait
 
-python processing/minorleagueball_prospect_id_grade_updater.py
+# python scrapers/minorleagueball_prospect_scraper.py --end_year "$year" --scrape_length "Current"
+
+# wait
+
+# python processing/minorleagueball_prospect_id_grade_updater.py
 
 wait
 
