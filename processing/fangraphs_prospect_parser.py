@@ -91,54 +91,51 @@ def process(year):
                 except ValueError:
                     birth_date = None
 
-        if birth_date is not None:
+        if birth_date is not None and fg_id is not None:
             bmonth, bday, byear = date_object.month, date_object.day, date_object.year
             est_years = byear
 
-            if fg_id is not None:
-                fg_id, byear, bmonth, bday = helper.adjust_fg_birthdays(fg_id, byear, bmonth, bday)
-                if fg_id == fg_minor_id:
-                    id_type = "fg_minor_id"
-                else:
-                    id_type = "fg_major_id"
+            fg_id, byear, bmonth, bday = helper.adjust_fg_birthdays(fg_id, byear, bmonth, bday)
+            if fg_id == fg_minor_id:
+                id_type = "fg_minor_id"
+            else:
+                id_type = "fg_major_id"
 
-                prospect_id = helper.add_prospect(fg_id, fname, lname, byear, bmonth, bday, "fg", id_type = id_type)
-                if id_type == "fg_major_id" and fg_minor_id is not None:
-                    foo = helper.add_prospect(fg_minor_id, fname, lname, byear, bmonth, bday, "fg", id_type = "fg_minor_id")
+            prospect_id = helper.add_prospect(fg_id, fname, lname, byear, bmonth, bday, "fg", id_type = id_type)
+            if id_type == "fg_major_id" and fg_minor_id is not None:
+                foo = helper.add_prospect(fg_minor_id, fname, lname, byear, bmonth, bday, "fg", id_type = "fg_minor_id")
 
-        elif age is not None:
-            age = helper.adjust_fg_age(full_name, year, p_type, age)
-            try:
-                lower_year, upper_year = helper.est_fg_birthday(age, year, p_type)
-                est_years = str(lower_year) + "-" + str(upper_year)
+        else:
+            if age is not None:
+                age = helper.adjust_fg_age(full_name, year, p_type, age)
+                try:
+                    lower_year, upper_year = helper.est_fg_birthday(age, year, p_type)
+                    est_years = str(lower_year) + "-" + str(upper_year)
 
-                low_year = lower_year+1
-                up_year = upper_year-1
-                prospect_id, byear, bmonth, bday = helper.id_lookup(fname, lname, low_year, up_year)
-
-                if prospect_id == 0:
-                    low_year = lower_year
-                    up_year = upper_year
+                    low_year = lower_year+1
+                    up_year = upper_year-1
                     prospect_id, byear, bmonth, bday = helper.id_lookup(fname, lname, low_year, up_year)
 
                     if prospect_id == 0:
-                        low_year = lower_year-1
-                        up_year = upper_year+1
+                        low_year = lower_year
+                        up_year = upper_year
                         prospect_id, byear, bmonth, bday = helper.id_lookup(fname, lname, low_year, up_year)
 
-            except (ValueError, TypeError):
-                est_years = None
-                prospect_id = 0
+                        if prospect_id == 0:
+                            low_year = lower_year-1
+                            up_year = upper_year+1
+                            prospect_id, byear, bmonth, bday = helper.id_lookup(fname, lname, low_year, up_year)
 
-        else:
-            prospect_id = 0
-            est_years = None
+                except (ValueError, TypeError):
+                    est_years = None
+                    prospect_id = 0
+            else:
+                prospect_id = 0
+                est_years = None
 
         if fg_id is None:
-            prospect_id = 0
             fg_id = str(full_name.replace(' ','')) + '_' + str(p_type) + '_' + str(year)
-            print '\t\t\t\t', fg_id, birth_date
-            # raw_input(prospect_id)
+
 
         entry['year'] = year
         entry['prospect_id'] = prospect_id

@@ -68,7 +68,7 @@ def process_prospects(year):
     2.75*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
     0.50*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
     )
-    + (IFNULL(MaxVelo_Bonus, 0) + IFNULL(FastballRPM_Bonus, 0) + IFNULL(BreakingRPM_Bonus, 0))
+    + (IFNULL(MaxVelo_Bonus, 0) + IFNULL(FastballRPM_Bonus, 0) + IFNULL(BreakingRPM_Bonus, 0) + IFNULL(Athleticsm_Bonus, 0) + IFNULL(Performance_Bonus, 0))
     , 2) AS superAdj_FV
     , FORMAT(
     ( 5*avg_FV +
@@ -205,9 +205,11 @@ def process_prospects(year):
                 )
             , 1) AS MLB_Pitchers_OFP
             , "|" AS "*BONUS_OFP*"
-            , LEAST(GREATEST((MaxVelo-94)/2, 0), 5) AS MaxVelo_Bonus
-            , LEAST(GREATEST((Fastball_RPM-2400)/100, 0), 5) AS FastballRPM_Bonus
-            , LEAST(GREATEST((Breaking_RPM-2700)/100, 0), 5) AS BreakingRPM_Bonus
+            , LEAST(GREATEST((MaxVelo-94)/4, 0), 2) AS MaxVelo_Bonus
+            , LEAST(GREATEST((Fastball_RPM-2500)/300, 0), 2) AS FastballRPM_Bonus
+            , LEAST(GREATEST((Breaking_RPM-2700)/300, 0), 2) AS BreakingRPM_Bonus
+            , 1.0*(COALESCE(fg.athleticism, fgd.athleticism)) AS Athleticsm_Bonus
+            , 2.0*COALESCE(fg.performer, fgd.performer) AS Performance_Bonus
             , "|" AS "*FG_HIT*"
             , fgh.Hit_present, fgh.GamePower_present, fgh.RawPower_present, fgh.Speed_present, fgh.Field_present, fgh.Throws_present
             , fgh.Hit_future, fgh.GamePower_future, fgh.RawPower_future, fgh.Speed_future, fgh.Field_future, fgh.Throws_future
@@ -378,15 +380,15 @@ def export_tables(year):
 
         if table_name == "_draft_list":
             sheet.freeze_panes(1,13)
-            sheet.autofilter('A1:DZ1')
+            sheet.autofilter('A1:EB1')
 
         elif table_name == "_master_current":
             sheet.freeze_panes(1,12)
-            sheet.autofilter('A1:DY1')
+            sheet.autofilter('A1:EA1')
 
         elif table_name == "_master_prospects":
             sheet.freeze_panes(1,8)
-            sheet.autofilter('A1:DQ1')
+            sheet.autofilter('A1:DS1')
 
 
         workbook.set_size(1800,1200)
