@@ -46,6 +46,9 @@ def initiate(end_year, scrape_length):
 
 
 def process(year):
+    if year >= 2018:
+        process_prospect_list(year, "professional", "updated")
+        
     for list_type, list_key in {"draft":"mlb","professional":"prospect","international":"int"}.items():
 
         if (

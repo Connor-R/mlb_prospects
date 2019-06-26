@@ -42,13 +42,38 @@ def process(year):
     for cn in col_names:
         cols.append(cn[0])
 
-    qry = """SELECT *
-    FROM fg_raw
+    qry = """SELECT a.*
+    FROM(
+        SELECT *
+            FROM fg_raw f1
+            WHERE 1
+                AND season = %s
+    ) a
+    LEFT JOIN(
+        SELECT f1.*
+            FROM fg_raw f1
+            JOIN fg_raw f2 ON (f1.prospect_type = f2.prospect_type
+                AND f1.FirstName = f2.FirstName
+                AND f1.LastName = f2.LastName
+                AND f1.Age = f2.Age
+                AND f1.season = f2.season
+                AND f1.type LIKE "%%report%%"
+                AND f2.type LIKE "%%update%%"
+            )
+            WHERE 1
+                AND f1.season = %s
+    ) upd ON (a.prospect_type = upd.prospect_type
+        AND a.FirstName = upd.FirstName
+        AND a.LastName = upd.LastName
+        AND a.Age = upd.Age
+        AND a.season = upd.season
+        AND a.type = upd.type
+    )
     WHERE 1
-        AND season = %s
+        AND upd.FirstName IS NULL
     ;"""
 
-    query = qry % (year)
+    query = qry % (year, year)
 
     res = db.query(query)
 
@@ -183,7 +208,7 @@ def process(year):
             process_draft(year, entry, row_val)
         elif p_type == 'international':
             process_international(year, entry, row_val)
-        elif p_type == 'professional':
+        elif p_type in 'professional':
             process_professional(year, entry, row_val)
 
 
@@ -203,6 +228,18 @@ def process_draft(year, entry, row_val):
     entry['pick_num'] = pick_num
     entry['pick_team'] = pick_team
 
+    trend = ifzero(row_val['Trend'])
+
+    try:
+        if 'uarr' in trend:
+            trend_val = 'UP'
+        elif 'darr' in trend:
+            trend_val = 'DOWN'
+    except TypeError:
+        trend_val = None
+
+    entry['trend'] = trend_val
+
     db.insertRowDict(entry, 'fg_prospects_draft', replace=True, debug=1)
     db.conn.commit()
 
@@ -220,6 +257,19 @@ def process_professional(year, entry, row_val):
     entry['ovr_rank'] = ifzero(row_val['Ovr_Rank'])
     entry['signed'] = ifzero(row_val['Draft'])
     entry['team'] = ifzero(row_val['Team'])
+
+    trend = ifzero(row_val['Trend'])
+
+    try:
+        if 'uarr' in trend:
+            trend_val = 'UP'
+        elif 'darr' in trend:
+            trend_val = 'DOWN'
+    except TypeError:
+        trend_val = None
+
+    entry['trend'] = trend_val
+
 
     db.insertRowDict(entry, 'fg_prospects_professional', replace=True, debug=1)
     db.conn.commit()

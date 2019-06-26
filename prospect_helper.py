@@ -27,12 +27,16 @@ def fname_lookup(fname):
         fname_search = "Ton"
     elif fname in ("Jon", "John", "Jonny", "Johnny", "Jonathan"):
         fname_search = "Jo"
+    elif fname in ( "Joe", "Joseph", "Joey"):
+        fname_search = "Jo"
     elif fname in ("Jazz", "Jasrado"):
         fname_search = "Ja"
     elif fname in ("Stephen", "Steve", "Steven"):
         fname_search = "Ste"
     elif fname in ("Nathan", "Nathaniel", "Nate"):
         fname_search = "Nat"
+    elif fname in ("Ron", "Ronald", "Ronny", "Ronnie", "Ronaldo"):
+        fname_search = "Ron"
     else:
         fname_search = fname
 
@@ -462,6 +466,11 @@ def adjust_fg_birthdays(fg_id, byear, bmonth, bday):
     "sa3007051": ["sa3007051", 1997, 6, 3],
     "16207": ["16207", 1992, 9, 18],
     "sa3007744": ["sa3007744", 2000, 12, 22],
+    "sa3008436": ["sa3008436", 1999, 12, 17],
+    "sa3007295": ["sa3007295", 2000, 10, 1],
+    "sa3008743": ["sa3008743", 2002, 4, 26],
+    
+
     }
 
     if fg_id in birthday_dict:

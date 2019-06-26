@@ -56,40 +56,40 @@ def process_prospects(year):
         table_add = "UNION"
 
     table_qry = """%s 
- SELECT 
+    SELECT DISTINCT
     FORMAT(
     ( 5*avg_FV +
-    0.25*IFNULL(COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP), 0) + 
-    2.75*IFNULL(COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP), 0) + 
-    0.50*IFNULL(COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP), 0) 
+    0.50*IFNULL(COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP), 0) + 
+    1.25*IFNULL(COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP), 0) + 
+    0.75*IFNULL(COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP), 0) 
     ) /
     (5 + 
-    0.25*IFNULL((COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)/COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)), 0) + 
-    2.75*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
-    0.50*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
+    0.50*IFNULL((COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)/COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)), 0) + 
+    1.25*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
+    0.75*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
     )
-    + (IFNULL(MaxVelo_Bonus, 0) + IFNULL(FastballRPM_Bonus, 0) + IFNULL(BreakingRPM_Bonus, 0) + IFNULL(Athleticsm_Bonus, 0) + IFNULL(Performance_Bonus, 0))
-    , 2) AS superAdj_FV
+    + (IFNULL(MaxVelo_Bonus, 0) + IFNULL(FastballRPM_Bonus, 0) + IFNULL(BreakingRPM_Bonus, 0) + IFNULL(Athleticism_Bonus, 0) + IFNULL(Performance_Bonus, 0) + IFNULL(Trend_Bonus, 0))
+    , 1) AS superAdj_FV
     , FORMAT(
     ( 5*avg_FV +
-    0.25*IFNULL(COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP), 0) + 
-    2.75*IFNULL(COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP), 0) + 
-    0.50*IFNULL(COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP), 0) 
+    0.50*IFNULL(COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP), 0) + 
+    1.50*IFNULL(COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP), 0) + 
+    0.75*IFNULL(COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP), 0) 
     ) /
     (5 + 
-    0.25*IFNULL((COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)/COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)), 0) + 
-    2.75*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
-    0.50*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
+    0.50*IFNULL((COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)/COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)), 0) + 
+    1.50*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
+    0.75*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
     )
-    , 2) AS adj_FV
+    , 1) AS adj_FV
     , ofps.*
     FROM(
         SELECT
         FORMAT( 
-        ( 5*IFNULL(fg_FV,0) + 3*IFNULL(mi_FV,0) + 2*IFNULL(MLB_FV,0) )
+        ( 5*IFNULL(fg_FV,0) + 3*IFNULL(mi_FV-3,0) + 2*IFNULL(MLB_FV-5,0) )
         /
         ( 5*IFNULL(fg_FV/fg_FV,0) + 3*IFNULL(mi_FV/mi_FV,0) + 2*IFNULL(MLB_FV/MLB_FV,0) ) 
-        , 2) AS "avg_FV"
+        , 1) AS "avg_FV"
         , FORMAT(
         (
         0.25*IFNULL(COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP), 0) + 
@@ -101,7 +101,27 @@ def process_prospects(year):
         2.75*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
         1.00*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
         )
-        , 2) AS ofp_FV
+        , 1) AS ofp_FV
+        , FORMAT(
+        (
+        3.00*IFNULL(COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP), 0) + 
+        1.00*IFNULL(COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP), 0) 
+        ) /
+        (
+        3.00*IFNULL((COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)/COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)), 0) + 
+        1.00*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
+        )
+        , 1) AS PV
+        , FORMAT(
+        (
+        3.00*IFNULL(COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP), 0) + 
+        1.00*IFNULL(COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP), 0) 
+        ) /
+        (
+        3.00*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
+        1.00*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
+        )
+        , 1) AS FV
         , summary_stats.*
         FROM(
             SELECT "|" AS "*BIO*"
@@ -125,7 +145,13 @@ def process_prospects(year):
             , p.fg_minor_id
             , "|" AS "*FG*"
             , COALESCE(fg.ovr_rank, fgd.ovr_rank) AS FGOvrRnk
+            , fgd.draft_rank AS FG_DraftRank
+            , fg.org_rank AS FG_OrgRank
+            , fgd.pick_num AS FG_DraftPick
             , COALESCE(fg.school, fgd.school) AS FGSchool
+            , fg.level AS FG_Level
+            , fg.signed AS FG_Signed
+            , COALESCE(fg.team, fgd.pick_team) AS FG_Team
             , COALESCE(fg.athleticism, fgd.athleticism) AS FG_Athleticism
             , COALESCE(fg.performer, fgd.performer) AS FG_Performer
             , COALESCE(fg.risk, fgd.risk) AS FG_Risk
@@ -149,15 +175,6 @@ def process_prospects(year):
             , mi.grade AS mi_grade
             , mi.eta as mi_eta
             , mi.FV AS mi_FV
-            , "|" AS "*FG_PRO*"
-            , fg.team AS FG_Team
-            , fg.level AS FG_Level
-            , fg.org_rank AS FG_OrgRank
-            , fg.signed AS FG_Signed
-            , "|" AS "*FG_DRAFT*"
-            , fgd.draft_rank AS FG_DraftRank
-            , fgd.pick_num AS FG_DraftPick
-            , fgd.pick_team AS FG_DraftTeam
             , "|" AS "*MLB_PRO*"
             , mlbp.rank AS MLB_OrgRank
             , mlbp.pre_top100 AS MLB_OvrRank
@@ -172,44 +189,45 @@ def process_prospects(year):
                 (IFNULL(fgp.Fastball_present, 0) + IFNULL(fgp.Changeup_present, 0) + 
                 IFNULL(fgp.Curveball_present, 0) + IFNULL(fgp.Slider_present, 0) +
                 IFNULL(fgp.Cutter_present, 0) + IFNULL(fgp.Splitter_present, 0) +
-                3*IFNULL(fgp.Command_present, 0)
+                1.5*IFNULL(fgp.Command_present, 0)
                 )/
                 (IFNULL(fgp.Fastball_present/fgp.Fastball_present, 0) + IFNULL(fgp.Changeup_present/fgp.Changeup_present, 0) + 
                 IFNULL(fgp.Curveball_present/fgp.Curveball_present, 0) + IFNULL(fgp.Slider_present/fgp.Slider_present, 0) +
                 IFNULL(fgp.Cutter_present/fgp.Cutter_present, 0) + IFNULL(fgp.Splitter_present/fgp.Splitter_present, 0) +
-                3*IFNULL(fgp.Command_present/fgp.Command_present, 0)
+                1.5*IFNULL(fgp.Command_present/fgp.Command_present, 0)
                 )
             , 1) AS FG_Pitchers_pOFP
             , FORMAT( 
                 (IFNULL(fgp.Fastball_future, 0) + IFNULL(fgp.Changeup_future, 0) + 
                 IFNULL(fgp.Curveball_future, 0) + IFNULL(fgp.Slider_future, 0) +
                 IFNULL(fgp.Cutter_future, 0) + IFNULL(fgp.Splitter_future, 0) +
-                3*IFNULL(fgp.Command_future, 0)
+                1.5*IFNULL(fgp.Command_future, 0)
                 )/
                 (IFNULL(fgp.Fastball_future/fgp.Fastball_future, 0) + IFNULL(fgp.Changeup_future/fgp.Changeup_future, 0) + 
                 IFNULL(fgp.Curveball_future/fgp.Curveball_future, 0) + IFNULL(fgp.Slider_future/fgp.Slider_future, 0) +
                 IFNULL(fgp.Cutter_future/fgp.Cutter_future, 0) + IFNULL(fgp.Splitter_future/fgp.Splitter_future, 0) +
-                3*IFNULL(fgp.Command_future/fgp.Command_future, 0)
+                1.5*IFNULL(fgp.Command_future/fgp.Command_future, 0)
                 )
             , 1) AS FG_Pitchers_fOFP,
             FORMAT( -5.0 +
                 (IFNULL(mgp.fastball, 0) + IFNULL(mgp.change, 0) + 
                 IFNULL(mgp.curve, 0) + IFNULL(mgp.slider, 0) +
                 IFNULL(mgp.cutter, 0) + IFNULL(mgp.splitter, 0) +
-                IFNULL(mgp.other, 0) + 3*IFNULL(mgp.control, 0)
+                IFNULL(mgp.other, 0) + 1.5*IFNULL(mgp.control, 0)
                 )/
                 (IFNULL(mgp.fastball/mgp.fastball, 0) + IFNULL(mgp.change/mgp.change, 0) + 
                 IFNULL(mgp.curve/mgp.curve, 0) + IFNULL(mgp.slider/mgp.slider, 0) +
                 IFNULL(mgp.cutter/mgp.cutter, 0) + IFNULL(mgp.splitter/mgp.splitter, 0) +
-                IFNULL(mgp.other/mgp.other, 0) + 3*IFNULL(mgp.control/mgp.control, 0)
+                IFNULL(mgp.other/mgp.other, 0) + 1.5*IFNULL(mgp.control/mgp.control, 0)
                 )
             , 1) AS MLB_Pitchers_OFP
             , "|" AS "*BONUS_OFP*"
             , LEAST(GREATEST((MaxVelo-94)/4, 0), 2) AS MaxVelo_Bonus
             , LEAST(GREATEST((Fastball_RPM-2500)/300, 0), 2) AS FastballRPM_Bonus
             , LEAST(GREATEST((Breaking_RPM-2700)/300, 0), 2) AS BreakingRPM_Bonus
-            , 1.0*(COALESCE(fg.athleticism, fgd.athleticism)) AS Athleticsm_Bonus
-            , 2.0*COALESCE(fg.performer, fgd.performer) AS Performance_Bonus
+            , 1.0*(COALESCE(fg.athleticism, fgd.athleticism)) AS Athleticism_Bonus
+            , 1.0*COALESCE(fg.performer, fgd.performer) AS Performance_Bonus
+            , IF(COALESCE(fg.trend, fgd.trend) = 'UP', 1.0, IF(COALESCE(fg.trend, fgd.trend) = 'DOWN', -1.0, 0)) AS Trend_Bonus
             , "|" AS "*FG_HIT*"
             , fgh.Hit_present, fgh.GamePower_present, fgh.RawPower_present, fgh.Speed_present, fgh.Field_present, fgh.Throws_present
             , fgh.Hit_future, fgh.GamePower_future, fgh.RawPower_future, fgh.Speed_future, fgh.Field_future, fgh.Throws_future
@@ -229,8 +247,8 @@ def process_prospects(year):
             LEFT JOIN mlb_prospects_professional mlbp USING (YEAR, prospect_id)
             LEFT JOIN fg_prospects_draft fgd USING (YEAR, prospect_id)
             LEFT JOIN mlb_prospects_draft mlbd USING (YEAR, prospect_id)
-            LEFT JOIN fg_grades_hitters fgh ON (p.year = fgh.year AND (fg.fg_id = fgh.fg_id OR fgd.fg_id = fgh.fg_id))
-            LEFT JOIN fg_grades_pitchers fgp ON (p.year = fgp.year AND (fg.fg_id = fgp.fg_id OR fgd.fg_id = fgp.fg_id))
+            LEFT JOIN fg_grades_hitters fgh ON (p.year = fgh.year AND (IF(fg.fg_id IS NOT NULL, fg.fg_id = fgh.fg_id, fgd.fg_id = fgh.fg_id)))
+            LEFT JOIN fg_grades_pitchers fgp ON (p.year = fgp.year AND (IF(fg.fg_id IS NOT NULL, fg.fg_id = fgp.fg_id, fgd.fg_id = fgp.fg_id)))
             LEFT JOIN mlb_grades_hitters mgh ON (p.year = mgh.year AND (CONVERT(p.mlb_id,CHAR) = mgh.mlb_id OR p.mlb_draft_id = mgh.mlb_id OR p.mlb_international_id = mgh.mlb_id))
             LEFT JOIN mlb_grades_pitchers mgp ON (p.year = mgp.year AND (CONVERT(p.mlb_id,CHAR) = mgp.mlb_id OR p.mlb_draft_id = mgp.mlb_id OR p.mlb_international_id = mgp.mlb_id))
             WHERE 1
@@ -244,6 +262,7 @@ def process_prospects(year):
 
         ) summary_stats
     ) ofps
+    GROUP BY superAdj_FV, adj_FV, avg_FV, ofp_FV, fnames, lnames, year, age, position, bats, throws, height, weight
     """
 
     table_query = table_qry % (table_add, year)
@@ -252,8 +271,7 @@ def process_prospects(year):
 
 
 def update_tables(year):
-    qry = """SET @yr_rnk = 0;
-    SET @draft_rnk = 0;
+    qry = """SET @draft_rnk = 0;
     SET @rowno1 = 0; 
     SET @rowno2 = 0; 
     SET @rowno3 = 0; 
@@ -261,8 +279,7 @@ def update_tables(year):
 
     DROP TABLE IF EXISTS _master_current;
     CREATE TABLE _master_current AS
-    SELECT @yr_rnk := @yr_rnk+1 AS YearRank
-    , a.*
+    SELECT a.*
     FROM(
         SELECT superAdjFV_rnk
         , adjFV_rnk
@@ -313,7 +330,7 @@ def update_tables(year):
             ) d1
         ) d2 USING (fnames, lnames, age)
         JOIN _master_prospects m USING (fnames, lnames, age)
-        LEFT JOIN NSBL.current_rosters_excel cr ON (find_in_set(cr.fname, m.fnames)>=1
+        LEFT JOIN NSBL._draft_rosters cr ON (find_in_set(cr.fname, m.fnames)>=1
             AND find_in_set(cr.lname, m.lnames)
         )
         WHERE 1
@@ -325,14 +342,20 @@ def update_tables(year):
 
     DROP TABLE IF EXISTS _draft_list;
     CREATE TABLE _draft_list AS
-    SELECT @draft_rnk := @draft_rnk+1 AS DraftRank
+    SELECT CONCAT(IF(LOCATE(",", fnames) > 0, LEFT(fnames, POSITION("," in fnames)-1), fnames), " ", IF(LOCATE(",", lnames) > 0, LEFT(lnames, POSITION("," in lnames)-1), lnames)) AS full_name
+    , "" AS drafted
+    , age AS dAge
+    , position AS dPos
+    , COALESCE(FG_Team, MLB_Team) AS dTeam
+    , COALESCE(FG_Signed, MLB_Drafted, MLB_Signed) AS dSigned
+    , @draft_rnk := @draft_rnk+1 AS DraftRank
     , a.*
     FROM(
         SELECT *
         FROM _master_current m
         WHERE 1
             AND m.NSBL_Team IS NULL
-        ORDER BY YearRank ASC
+        ORDER BY superAdjFV_rnk ASC
     ) a
     ;
     """
@@ -379,15 +402,15 @@ def export_tables(year):
                 sheet.write(i+1, j, col, cell_format)
 
         if table_name == "_draft_list":
-            sheet.freeze_panes(1,13)
-            sheet.autofilter('A1:EB1')
+            sheet.freeze_panes(1,8)
+            sheet.autofilter('A1:EG1')
 
         elif table_name == "_master_current":
-            sheet.freeze_panes(1,12)
-            sheet.autofilter('A1:EA1')
+            sheet.freeze_panes(1,16)
+            sheet.autofilter('A1:DZ1')
 
         elif table_name == "_master_prospects":
-            sheet.freeze_panes(1,8)
+            sheet.freeze_panes(1,12)
             sheet.autofilter('A1:DS1')
 
 
