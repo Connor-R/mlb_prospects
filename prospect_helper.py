@@ -172,12 +172,8 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
 
             for col, val in {f_name:fname, l_name:lname, id_column:site_id}.items():
 
-                if col in ("mlb_id",):
-                    set_str = "SET %s = %s" % (col,val)
-                    set_str2 = "AND %s = 0" % (col)
-                else:
-                    set_str = 'SET %s = "%s"' % (col,val)
-                    set_str2 = "AND %s IS NULL" % (col)
+                set_str = 'SET %s = "%s"' % (col,val)
+                set_str2 = "AND (%s IS NULL OR %s IS NULL)" % (col, col)
 
                 update_qry = """UPDATE professional_prospects 
                 %s
@@ -214,7 +210,7 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
             db.insertRowDict(entry, "professional_prospects", debug=1)
             db.conn.commit()
 
-            print check_query
+            print '\n\n\n\n', check_other_query, '\n\n\n\n\n', check_query, '\n\n\n\n'
             recheck_val = db.query(check_query)
             prospect_id = recheck_val[0][0]
             return prospect_id
@@ -323,55 +319,67 @@ def adjust_mlb_birthdays(mlb_id, byear, bmonth, bday):
     Mostly used in adjusted wrong birthdates for draft prospects in earlier seasons.
     """
     birthday_dict = {
-    "allen_logan":[1997,5,23],
-    "aracena_ricky":[1997,10,2],
-    "bradley_bobby":[1996,5,29],
-    "burdi_zack":[1995,3,9],
-    "burr_ryan":[1994,5,28],
-    "castillo_diego":[1994,1,18],
-    "cody_kyle":[1994,8,9],
-    "deetz_dean":[1993,11,29],
-    "diaz_lewin":[1996,11,19],
-    "dietz_matthias":[1995,9,20],
-    "ervin_phillip":[1992,7,15],
-    "farmer_buck":[1991,2,20],
-    "garcia_victor":[1999,9,16],
-    "green_hunter":[1995,7,12],
-    "hayes_kebryan":[1997,1,28],
-    "hays_austin":[1995,7,5],
-    "hill_brigham":[1995,7,8],
-    "hudson_dakota":[1994,9,15],
-    "jewell_jake":[1993,5,16],
-    "justus_connor":[1994,11,2],
-    "kirby_nathan":[1993,11,23],
-    "knebel_corey":[1991,11,26],
-    "lee_nick":[1991,1,13],
-    "lopez_jose":[1993,9,1],
-    "mathias_mark":[1994,8,2],
-    "mitchell_calvin":[1999,3,8],
-    "molina_leonardo":[1997,7,31],
-    "murphy_brendan":[1999,1,2],
-    "murphy_sean":[1994,10,10],
-    "perez_joe":[1999,8,12],
-    "quantrill_cal":[1995,2,10],
-    "rainey_tanner":[1992,12,25],
-    "riley_austin":[1997,4,2],
-    "rodriguez_jose":[1995,8,29],
-    "rosario_jeisson":[1999,10,22],
-    "shipley_braden":[1992,2,22],
-    "torres_gleyber":[1996,12,13],
-    "tyler_robert":[1995,6,18],
-    "uelmen_erich":[1996,5,19],
-    "varsho_daulton":[1996,7,2],
-    "wakamatsu_luke":[1996,10,10],
-    "ward_taylor":[1993,12,14],
-    "weigel_patrick":[1994,7,8],
-    "whitley_forrest":[1997,9,15],
-    "wise_carl":[1994,5,25],
-    "woodford_jake":[1996,10,28],
-    "zagunis_mark":[1993,2,5],
-    "gingery_steven":[1997,9,23],
-    "weathers_ryan":[1999,12,17]
+    "agnos_jake": [1998, 5, 23],
+    "allen_logan": [1997, 5, 23],
+    "aracena_ricky": [1997, 10, 2],
+    "bradley_bobby": [1996, 5, 29],
+    "burdi_zack": [1995, 3, 9],
+    "burr_ryan": [1994, 5, 28],
+    "cairo_christian": [2001, 6, 11],
+    "castillo_diego": [1994, 1, 18],
+    "cody_kyle": [1994, 8, 9],
+    "deetz_dean": [1993, 11, 29],
+    "diaz_lewin": [1996, 11, 19],
+    "dietz_matthias": [1995, 9, 20],
+    "dillard_thomas": [1997, 8, 28],
+    "eastman_colton": [1996, 8, 22],
+    "ervin_phillip": [1992, 7, 15],
+    "farmer_buck": [1991, 2, 20],
+    "fletcher_dominic": [1997, 9, 2],
+    "garcia_victor": [1999, 9, 16],
+    "gingery_steven": [1997, 9, 23],
+    "gray_seth": [1998, 5, 30],
+    "green_hunter": [1995, 7, 12],
+    "hayes_kebryan": [1997, 1, 28],
+    "hays_austin": [1995, 7, 5],
+    "henry_tommy": [1997, 7, 29],
+    "hill_brigham": [1995, 7, 8],
+    "hudson_dakota": [1994, 9, 15],
+    "jewell_jake": [1993, 5, 16],
+    "justus_connor": [1994, 11, 2],
+    "kirby_nathan": [1993, 11, 23],
+    "knebel_corey": [1991, 11, 26],
+    "lee_nick": [1991, 1, 13],
+    "lopez_jose": [1993, 9, 1],
+    "mathias_mark": [1994, 8, 2],
+    "mitchell_calvin": [1999, 3, 8],
+    "molina_leonardo": [1997, 7, 31],
+    "morris_tanner": [1998, 9, 13],
+    "murphy_brendan": [1999, 1, 2],
+    "murphy_sean": [1994, 10, 10],
+    "oliva_jared": [1995, 11, 27],
+    "perez_joe": [1999, 8, 12],
+    "quantrill_cal": [1995, 2, 10],
+    "rainey_tanner": [1992, 12, 25],
+    "riley_austin": [1997, 4, 2],
+    "rodriguez_jose": [1995, 8, 29],
+    "rosario_jeisson": [1999, 10, 22],
+    "shipley_braden": [1992, 2, 22],
+    "torres_gleyber": [1996, 12, 13],
+    "triolo_jared": [1998, 2, 8],
+    "tyler_robert": [1995, 6, 18],
+    "uelmen_erich": [1996, 5, 19],
+    "varsho_daulton": [1996, 7, 2],
+    "wakamatsu_luke": [1996, 10, 10],
+    "ward_taylor": [1993, 12, 14],
+    "weathers_ryan": [1999, 12, 17],
+    "weigel_patrick": [1994, 7, 8],
+    "whitley_forrest": [1997, 9, 15],
+    "wise_carl": [1994, 5, 25],
+    "woodford_jake": [1996, 10, 28],
+    "zagunis_mark": [1993, 2, 5],
+    "little_grant": [1997, 7, 8],
+    "jarvis_justin": [2000, 2, 20],
     }
 
     if mlb_id in birthday_dict:
@@ -389,11 +397,14 @@ def adjust_fg_names(full_name):
     names_dict = {
     "Abraham Gutierrez": ["Abrahan", "Gutierrez"],
     "Adam Brett Walker": ["Adam Brett", "Walker"],
+    "Adolis Garcia": ["Jose Adolis", "Garcia"],
     "D.J. Stewart": ["DJ", "Stewart"],
     "Fernando Tatis, Jr.": ["Fernando", "Tatis Jr."],
     "Hoy Jun Park": ["Hoy Jun", "Park"],
     "Jeison Rosario": ["Jeisson", "Rosario"],
+    "Joe Gray, Jr.": ["Joe", "Gray Jr."],
     "Jonathan Machado": ["Jonatan", "Machado"],
+    "Lenny Torres, Jr.": ["Lenny", "Torres Jr."],
     "Luis Alejandro Basabe": ["Luis Alejandro", "Basabe"],
     "Luis Alexander Basabe": ["Luis Alexander", "Basabe"],
     "M.J. Melendez": ["MJ", "Melendez"],
@@ -408,9 +419,6 @@ def adjust_fg_names(full_name):
     "Trenton Clark": ["Trent", "Grisham"],
     "Vladimir Guerrero, Jr.": ["Vladimir", "Guerrero Jr."],
     "Yordy Barley": ["Jordy", "Barley"],
-    "Adolis Garcia": ["Jose Adolis", "Garcia"],
-    "Lenny Torres, Jr.": ["Lenny", "Torres Jr."],
-    "Joe Gray, Jr.": ["Joe", "Gray Jr."],
     }
 
     if full_name in names_dict:
@@ -458,19 +466,37 @@ def adjust_fg_birthdays(fg_id, byear, bmonth, bday):
     """
     birthday_dict = {
     "14510": ["14510", 1993, 7, 1],
-    "16401": ["16401", 1993, 12, 26],
-    "sa293098": ["sa874117", 1995, 10, 2],
-    "sa392969": ["sa829387", 1997, 2, 24],
-    "sa3008139": ["sa3008139", 1997, 3, 15],
-    "sa915815": ["sa915815", 1996, 4, 2],
-    "sa3007051": ["sa3007051", 1997, 6, 3],
     "16207": ["16207", 1992, 9, 18],
-    "sa3007744": ["sa3007744", 2000, 12, 22],
-    "sa3008436": ["sa3008436", 1999, 12, 17],
+    "16401": ["16401", 1993, 12, 26],
+    "17548": ["17548", 1993, 12, 14],
+    "18126": ["18126", 1994, 1, 1],
+    "sa293098": ["sa874117", 1995, 10, 2],
+    "sa3005715": ["sa3005715", 2000, 9, 16],
+    "sa3007051": ["sa3007051", 1997, 6, 3],
     "sa3007295": ["sa3007295", 2000, 10, 1],
+    "sa3007744": ["sa3007744", 2000, 12, 22],
+    "sa3008139": ["sa3008139", 1997, 3, 15],
+    "sa3008436": ["sa3008436", 1999, 12, 17],
     "sa3008743": ["sa3008743", 2002, 4, 26],
+    "sa3008762": ["sa3008762", 2002, 1, 22],
+    "sa3010022": ["sa3010022", 2001, 9, 10],
+    "sa3011446": ["sa3011446", 2000, 8, 25],
+    "sa3011526": ["sa3011526", 1998, 2, 4],
+    "sa392969": ["sa829387", 1997, 2, 24],
+    "sa915815": ["sa915815", 1996, 4, 2],
+    "sa918676": ["sa918676", 1997, 12, 26],
+    "sa3009873": ["sa3009873", 1998, 9, 13],
+    "sa3008762": ["sa3008762", 2002, 1, 27],
+    "sa874174": ["sa874174", 1994, 12, 24],
+    "sa3004278": ["sa3004278", 1998, 9, 10],
+    "sa828703": ["sa828703", 1996, 8, 15],
+    "sa874806": ["sa874806", 1996, 9, 10],
+    "sa828873": ["sa828873", 1996, 11, 18],
+    "sa738514": ["sa738514", 1994, 9, 29],
+    "sa917955": ["sa917955", 1996, 9, 9],
+    "sa3008139": ["sa3008139", 1997, 3, 5],
+    "sa3008031": ["sa3008031", 1997, 7, 8],
     
-
     }
 
     if fg_id in birthday_dict:

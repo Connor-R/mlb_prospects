@@ -67,7 +67,7 @@ def scrape_prospects(year, prospect_lists):
                 mlb_id = player["player_id"]
                 player_url = player_base_url % (year, mlb_id)
                 
-                print list_cnt, year, list_type, "\t", str(mlb_id)
+                print list_cnt, year, list_type, i, "\t", str(mlb_id)
                 print "\t\t", str(player_url)
 
                 sleep(sleep_time)
@@ -145,7 +145,13 @@ def scrape_prospects(year, prospect_lists):
                         print "\n\n**ERROR TAG** MLB_ERROR", str(year), str(mlb_id), str(fname), str(lname), "\n\n"
                         continue
 
+                if prospect_id == 0 or prospect_id is None:
+                    grades_id = mlb_id
+                else:
+                    grades_id = prospect_id
+
                 entry["prospect_id"] = prospect_id
+                entry["grades_id"] = grades_id
                 entry["bats"] = bats
                 entry["throws"] = throws
                 entry["height"] = height

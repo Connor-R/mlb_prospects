@@ -247,10 +247,10 @@ def process_prospects(year):
             LEFT JOIN mlb_prospects_professional mlbp USING (YEAR, prospect_id)
             LEFT JOIN fg_prospects_draft fgd USING (YEAR, prospect_id)
             LEFT JOIN mlb_prospects_draft mlbd USING (YEAR, prospect_id)
-            LEFT JOIN fg_grades_hitters fgh ON (p.year = fgh.year AND (IF(fg.fg_id IS NOT NULL, fg.fg_id = fgh.fg_id, fgd.fg_id = fgh.fg_id)))
-            LEFT JOIN fg_grades_pitchers fgp ON (p.year = fgp.year AND (IF(fg.fg_id IS NOT NULL, fg.fg_id = fgp.fg_id, fgd.fg_id = fgp.fg_id)))
-            LEFT JOIN mlb_grades_hitters mgh ON (p.year = mgh.year AND (CONVERT(p.mlb_id,CHAR) = mgh.mlb_id OR p.mlb_draft_id = mgh.mlb_id OR p.mlb_international_id = mgh.mlb_id))
-            LEFT JOIN mlb_grades_pitchers mgp ON (p.year = mgp.year AND (CONVERT(p.mlb_id,CHAR) = mgp.mlb_id OR p.mlb_draft_id = mgp.mlb_id OR p.mlb_international_id = mgp.mlb_id))
+            LEFT JOIN fg_grades_hitters fgh ON (p.year = fgh.year AND fg.grades_id = fgh.grades_id)
+            LEFT JOIN fg_grades_pitchers fgp ON (p.year = fgp.year AND fg.grades_id = fgp.grades_id)
+            LEFT JOIN mlb_grades_hitters mgh ON (p.year = mgh.year AND (mlbp.grades_id = mgh.grades_id OR mlbd.grades_id = mgh.grades_id))
+            LEFT JOIN mlb_grades_pitchers mgp ON (p.year = mgp.year AND (mlbp.grades_id = mgp.grades_id OR mlbd.grades_id = mgp.grades_id)) 
             WHERE 1
                 AND (0
                     OR fg.year IS NOT NULL 
@@ -266,7 +266,7 @@ def process_prospects(year):
     """
 
     table_query = table_qry % (table_add, year)
-
+    # raw_input(table_query)
     return table_query
 
 

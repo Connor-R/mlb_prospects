@@ -55,7 +55,8 @@ def process(year):
             JOIN fg_raw f2 ON (f1.prospect_type = f2.prospect_type
                 AND f1.FirstName = f2.FirstName
                 AND f1.LastName = f2.LastName
-                AND f1.Age = f2.Age
+                AND f1.Age <= f2.Age
+                AND f1.Age > f2.Age-1
                 AND f1.season = f2.season
                 AND f1.type LIKE "%%report%%"
                 AND f2.type LIKE "%%update%%"
@@ -161,8 +162,13 @@ def process(year):
         if fg_id is None:
             fg_id = str(full_name.replace(' ','')) + '_' + str(p_type) + '_' + str(year)
 
+        if prospect_id == 0 or prospect_id is None:
+            grades_id = fg_id
+        else:
+            grades_id = prospect_id
 
         entry['year'] = year
+        entry['grades_id'] = grades_id
         entry['prospect_id'] = prospect_id
         entry['fg_id'] = fg_id
         entry['full_name'] = full_name
@@ -278,7 +284,7 @@ def process_professional(year, entry, row_val):
 def process_hitter_grades(year, entry, row_val):
     grade_entry = {}
     grade_entry['year'] = year
-    grade_entry['fg_id'] = entry['fg_id']
+    grade_entry['grades_id'] = entry['grades_id']
     grade_entry['Hit_present'] = ifzero(row_val['pHit'])
     grade_entry['Hit_future'] = ifzero(row_val['fHit'])
     grade_entry['GamePower_present'] = ifzero(row_val['pGame'])
@@ -298,7 +304,7 @@ def process_hitter_grades(year, entry, row_val):
 def process_pitcher_grades(year, entry, row_val):
     grade_entry = {}
     grade_entry['year'] = year
-    grade_entry['fg_id'] = entry['fg_id']
+    grade_entry['grades_id'] = entry['grades_id']
     grade_entry['TJ_Date'] = ifzero(row_val['TJDate'])
     grade_entry['MaxVelo'] = ifzero(row_val['Vel'])
     grade_entry['Fastball_RPM'] = ifzero(row_val['fRPM'])
