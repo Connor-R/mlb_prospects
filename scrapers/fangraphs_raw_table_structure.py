@@ -41,11 +41,13 @@ def initiate():
     keys = list(set(keys))
     keys.sort()
     for k in keys:
-        row_add = "\n`%s` TEXT DEFAULT NULL," % (str(k))
+        if str(k).upper() in ('PLAYERID', 'TEAM', 'TYPE', 'PLAYERNAME'):
+            row_add = "\n`%s` VARCHAR(64) NOT NULL DEFAULT ''," % (str(k))
+        else:
+            row_add = "\n`%s` TEXT DEFAULT NULL," % (str(k))
         qry += row_add
-
-    qry = qry[:-1]
-    qry += "\n) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+        
+    qry += "\nPRIMARY KEY (`PlayerId`,`Team`,`Type`,`playerName`)\n) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
 
     print "\n\n\n\n\n", qry
 

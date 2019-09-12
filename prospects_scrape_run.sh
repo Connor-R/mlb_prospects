@@ -8,7 +8,7 @@ year=2019
 
 # wait
 
-# python scrapers/mlb_prospect_scraper.py --end_year "$year" --scrape_length "Current"
+python scrapers/mlb_prospect_scraper.py --end_year "$year" --scrape_length "Current"
 
 wait
 
@@ -16,7 +16,7 @@ python processing/mlb_prospect_grades.py
 
 wait
 
-# python scrapers/fangraphs_prospect_scraper.py --end_year "$year" --scrape_length "Current"
+python scrapers/fangraphs_prospect_scraper.py --end_year "$year" --scrape_length "Current"
 
 wait
 
