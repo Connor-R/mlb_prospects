@@ -21,15 +21,15 @@ year=2020
 
 # python processing/mlb_prospect_grades.py
 
-# wait
+wait
 
-    # python scrapers/fangraphs_prospect_scraper.py --end_year "$year" --scrape_length "All"
+python scrapers/fangraphs_prospect_scraper.py --end_year "$year" --scrape_length "All"
 
-    # wait
+wait
 
-    # python processing/fangraphs_prospect_parser.py --end_year "$year" --scrape_length "All"
+python processing/fangraphs_prospect_parser.py --end_year "$year" --scrape_length "All"
 
-    # wait
+wait
 
 # python scrapers/minorleagueball_prospect_scraper.py --end_year "$year" --scrape_length "Current"
 

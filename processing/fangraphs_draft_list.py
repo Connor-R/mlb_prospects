@@ -14,9 +14,9 @@ def process():
 
     mlb_pit_url = 'http://www.fangraphs.com/leaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,3,4,5,11,7,8,13,-1,36,37,40,120,121,43,-1,44,48,51,-1,76,6,117,45,118,62,119,122,124,-1,59&season=2020&month=0&season1=2017&ind=0&team=0&rost=0&age=0&filter=&players='
 
-    all_bat_url = 'http://www.fangraphs.com/minorleaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=c,4,6,11,21,22,-1,24,25,30,32,-1,23,27,28,35,36,-1,31,33,34&season=2020&team=0&players='
+    all_bat_url = 'https://www.fangraphs.com/leaders/minor-league?pos=all&lg=2,4,5,6,7,8,9,10,11,14,12,13,15,16,17,18,30,32,33&stats=bat&qual=y&type=1&team=&season=2019&seasonEnd=2019&org=&ind=0&splitTeam=false&players='
     
-    all_pit_url = 'http://www.fangraphs.com/minorleaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,4,5,11,7,8,12,23,-1,24,25,26,27,-1,28,29,36,-1,30,31,32,-1,40,52,-1,6,34,35,37,23&season=2020&team=0&players='
+    all_pit_url = 'https://www.fangraphs.com/leaders/minor-league/?pos=all&lg=2,4,5,6,7,8,9,10,11,14,12,13,15,16,17,18,30,32,33&stats=pit&qual=y&type=0&team=&season=2019&seasonEnd=2019&org=&ind=0&splitTeam=false&players='
 
 
     get_players = """SELECT 
@@ -72,8 +72,8 @@ def process():
     mlb_bat_url = mlb_bat_url[:-1] + '&sort=27,d&page=1_250'
     mlb_pit_url = mlb_pit_url[:-1] + '&sort=28,d&page=1_250'
     
-    all_bat_url = all_bat_url[:-1] + '&sort=19,d&page=1_250'
-    all_pit_url = all_pit_url[:-1] + '&sort=26,d&page=1_250'
+    all_bat_url = all_bat_url[:-1] + '&sort=19,1&pageitems=10000000000000&pg=0'
+    all_pit_url = all_pit_url[:-1] + '&sort=7,1&&pageitems=10000000000000&pg=0'
 
     cnt_state = """\nTotal Follows: \t\t\t%s \n\tBatter Follows: \t%s \n\tPitcher Follows: \t%s\n
     \nMLB Follows: \t\t\t%s \n\tMLB Hitters: \t\t%s \n\tMLB Pitchers: \t\t%s\n
