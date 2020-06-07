@@ -419,6 +419,11 @@ def adjust_fg_names(full_name):
     "Trenton Clark": ["Trent", "Grisham"],
     "Vladimir Guerrero, Jr.": ["Vladimir", "Guerrero Jr."],
     "Yordy Barley": ["Jordy", "Barley"],
+    "Dom Nuez": ["Dom", "Nunez"],
+    "Jonathan Hernndez": ["Jonathan", "Hernandez"],
+    "Isan Daz": ["Isan", "Diaz"],
+    "Jess Luzardo": ["Jesus", "Luzardo"],
+    "Ronald Bolaos": ["Ronald", "Bolanos"],
     }
 
     if full_name in names_dict:
@@ -496,7 +501,8 @@ def adjust_fg_birthdays(fg_id, byear, bmonth, bday):
     "sa917955": ["sa917955", 1996, 9, 9],
     "sa3008139": ["sa3008139", 1997, 3, 5],
     "sa3008031": ["sa3008031", 1997, 7, 8],
-    
+    "17995": ["17995", 1996, 11, 18],
+
     }
 
     if fg_id in birthday_dict:

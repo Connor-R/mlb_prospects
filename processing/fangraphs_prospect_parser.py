@@ -95,6 +95,11 @@ def process(year):
         fname = row_val['FirstName']
         lname = row_val['LastName']
 
+        print year, p_type, fg_id, fg_minor_id, birth_date, age, full_name
+
+        if((full_name is None or full_name == '--empty--') and (fg_id is None or fg_id == '--empty--') and (fg_minor_id is None or fg_minor_id == '--empty--')):
+            continue
+
         full_name = full_name.replace("*","").replace(",", "").replace("  ", " ")
         fname = fname.replace("*", "")
         lname = lname.replace("*", "")
@@ -105,8 +110,6 @@ def process(year):
             fname = fname2
         if lname2 is not None:
             lname = lname2
-
-        print year, p_type, fg_id, fg_minor_id, birth_date, age, full_name #####
 
         if birth_date is not None:
             try:
@@ -337,7 +340,7 @@ def ifzero(val):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2019)
+    parser.add_argument("--end_year",type=int,default=2020)
     parser.add_argument("--scrape_length",type=str,default="All")
 
     args = parser.parse_args()

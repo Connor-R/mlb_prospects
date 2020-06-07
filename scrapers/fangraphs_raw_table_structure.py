@@ -4,6 +4,9 @@ from lxml import etree
 from time import time, sleep, mktime
 import argparse
 
+from py_data_getter import data_getter
+getter = data_getter()
+
 
 br = Browser()
 br.set_handle_robots(False)
@@ -17,7 +20,7 @@ br.addheaders = [("User-agent", "Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) Ap
 
 def initiate():
     keys = []
-    for year in range(2015, 2020):
+    for year in range(2015, 2021):
         if year >= 2018:
             keys = process_prospect_list(keys, year, "professional", "updated")
             sleep(5)
@@ -55,13 +58,12 @@ def initiate():
 def process_prospect_list(keys, year, list_type, list_key):
     url = "https://www.fangraphs.com/api/prospects/board/prospects-list?statType=player&draft=%s%s" % (year, list_key)
     print url
-    data = br.open(url)
 
-    tree = etree.parse(data)
+    json = getter.get_url_data(url, "json")
 
-    for plr in tree.iter('data'):
-        for p in plr.iter():
-             keys.append(p.tag)
+    for row in json:
+        for tag in row:
+            keys.append(tag)
 
     return keys
 

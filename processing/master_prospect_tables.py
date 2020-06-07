@@ -7,7 +7,7 @@ import os
 from py_db import db
 db = db("mlb_prospects")
 
-year = 2019
+year = 2020
 
 def initiate():
     start_time = time()
@@ -330,8 +330,15 @@ def update_tables(year):
             ) d1
         ) d2 USING (fnames, lnames, age)
         JOIN _master_prospects m USING (fnames, lnames, age)
-        LEFT JOIN NSBL._draft_rosters cr ON (find_in_set(cr.fname, m.fnames)>=1
-            AND find_in_set(cr.lname, m.lnames)
+        LEFT JOIN NSBL._draft_rosters cr ON (
+            find_in_set(
+                REPLACE(REPLACE(REPLACE(REPLACE(cr.fname,".","")," JR",""),"-"," "),"'","")
+                , REPLACE(REPLACE(REPLACE(REPLACE(m.fnames,".","")," JR",""),"-"," "),"'","")
+            )>=1
+            AND find_in_set(
+                REPLACE(REPLACE(REPLACE(REPLACE(cr.lname,".","")," JR",""),"-"," "),"'","")
+                , REPLACE(REPLACE(REPLACE(REPLACE(m.lnames,".","")," JR",""),"-"," "),"'","")
+            )>=1
         )
         WHERE 1
             AND m.year = %s

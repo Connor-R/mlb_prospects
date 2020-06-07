@@ -65,21 +65,32 @@ def process_prospect_list(year, list_type, list_key):
     list_url = base_url +"%s%s" % (year, list_key)
     print "\n", year, list_type, list_url
 
-    data = br.open(list_url)
-    tree = etree.parse(data)
+    json = getter.get_url_data(list_url, "json")
+
 
     entries = []
-    for plr in tree.iter('data'):
+    for plr in json:
         entry = {'prospect_type':list_type}
-        for p in plr.iter():
+        for ky,val in plr.items():
+            if type(val) in (str,unicode):
+                val2 = "".join([i if ord(i) < 128 else "" for i in val])
+                if val != val2 and 'name' in ky.lower():
+                    print '\n\n\n\nUNICODE NAME!!!! - \n\t', val
+                    print '\t', val2, '\n\n\n\n'
+                val = val2
+            entry[ky.lower()] = val
 
-            key = p.tag
-            val = p.text
-            if type(val) in (str, unicode):
-                val = "".join([i if ord(i) < 128 else "" for i in val])
-            entry[key] = val
-        
-        print '\t', year, list_key, entry['playerName']
+
+        if 'playerid' not in entry or entry['playerid'] == '':
+            entry['playerid'] = '--empty--'
+        if 'team' not in entry or entry['team'] == '':
+            entry['team'] = '--empty--'
+        if 'type' not in entry or entry['type'] == '':
+            entry['type'] = '--empty--'
+        if 'playername' not in entry or entry['playername'] == '':
+            entry['playername'] = '--empty--'
+
+        print '\t', year, list_key, entry['playername']
         db.insertRowDict(entry, 'fg_raw', insertMany=False, replace=True, rid=0,debug=1)
         db.conn.commit()
     sleep(sleep_time)
@@ -87,7 +98,7 @@ def process_prospect_list(year, list_type, list_key):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2019)
+    parser.add_argument("--end_year",type=int,default=2020)
     parser.add_argument("--scrape_length",type=str,default="All")
 
     args = parser.parse_args()

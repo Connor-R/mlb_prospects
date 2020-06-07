@@ -54,7 +54,7 @@ def process(delete_year):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2018)
+    parser.add_argument("--end_year",type=int,default=2020)
     parser.add_argument("--delete_length",type=str,default="Current")
 
     args = parser.parse_args()

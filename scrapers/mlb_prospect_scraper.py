@@ -249,10 +249,12 @@ def scrape_prospects(year, prospect_lists):
         else:
             table = "mlb_prospects_professional"
 
-        if entries != []:
-            for i in range(0, len(entries), 1000):
-                db.insertRowDict(entries[i: i + 1000], table, insertMany=True, replace=True, rid=0,debug=1)
-                db.conn.commit()
+        for e in entries:
+            raw_input(e)
+        # if entries != []:
+        #     for i in range(0, len(entries), 1000):
+        #         db.insertRowDict(entries[i: i + 1000], table, insertMany=True, replace=True, rid=0,debug=1)
+        #         db.conn.commit()
 
 
 if __name__ == "__main__":     
