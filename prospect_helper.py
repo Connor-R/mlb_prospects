@@ -101,7 +101,8 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
         OR (mlb_draft_id = "%s" AND mlb_draft_id IS NOT NULL)
         OR (mlb_international_id = "%s" AND mlb_international_id IS NOT NULL)
         OR (fg_minor_id = "%s" AND fg_minor_id IS NOT NULL)
-        OR (fg_major_id = "%s" AND fg_major_id IS NOT NULL))""" % (site_id, site_id, site_id, site_id, site_id)
+        OR (fg_major_id = "%s" AND fg_major_id IS NOT NULL)
+        OR (fg_temp_id = "%s" AND fg_temp_id IS NOT NULL))""" % (site_id, site_id, site_id, site_id, site_id, site_id)
     else:
         qry_add = """(%s = "%s" AND (%s != 0 OR %s IS NOT NULL))""" % (id_type, site_id, id_type, id_type)
         
@@ -161,7 +162,9 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
             elif p_type == "int":
                 id_column = "mlb_international_id"
             elif p_type == "fg":
-                if site_id[0] == "s":
+                if "_" in site_id:
+                    id_column = "fg_temp_id"
+                elif site_id[0] == "s":
                     id_column = "fg_minor_id"
                 else:
                     id_column = "fg_major_id"
@@ -191,7 +194,9 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
             entry = {"birth_year":int(byear), "birth_month":int(bmonth), "birth_day":int(bday)}
 
             if p_type == "fg":
-                if site_id[0] == "s":
+                if "_" in site_id:
+                    entry["fg_temp_id"] = site_id
+                elif site_id[0] == "s":
                     entry["fg_minor_id"] = site_id
                 else:
                     entry["fg_major_id"] = site_id

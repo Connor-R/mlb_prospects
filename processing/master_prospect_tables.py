@@ -247,8 +247,8 @@ def process_prospects(year):
             LEFT JOIN mlb_prospects_professional mlbp USING (YEAR, prospect_id)
             LEFT JOIN fg_prospects_draft fgd USING (YEAR, prospect_id)
             LEFT JOIN mlb_prospects_draft mlbd USING (YEAR, prospect_id)
-            LEFT JOIN fg_grades_hitters fgh ON (p.year = fgh.year AND fg.grades_id = fgh.grades_id)
-            LEFT JOIN fg_grades_pitchers fgp ON (p.year = fgp.year AND fg.grades_id = fgp.grades_id)
+            LEFT JOIN fg_grades_hitters fgh ON (p.year = fgh.year AND COALESCE(fg.grades_id, fgd.grades_id) = fgh.grades_id)
+            LEFT JOIN fg_grades_pitchers fgp ON (p.year = fgp.year AND COALESCE(fg.grades_id, fgd.grades_id) = fgp.grades_id)
             LEFT JOIN mlb_grades_hitters mgh ON (p.year = mgh.year AND (mlbp.grades_id = mgh.grades_id OR mlbd.grades_id = mgh.grades_id))
             LEFT JOIN mlb_grades_pitchers mgp ON (p.year = mgp.year AND (mlbp.grades_id = mgp.grades_id OR mlbd.grades_id = mgp.grades_id)) 
             WHERE 1

@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+import datetime
 import sys
 from time import time, sleep, mktime
 import argparse
@@ -24,7 +24,7 @@ def initiate(end_year, scrape_length):
 
     end_time = time()
     elapsed_time = float(end_time - start_time)
-    print "\n\nfangraphs_prospect_scraper.py"
+    print "\n\nfangraphs_prospect_parser.py"
     print "time elapsed (in seconds): " + str(elapsed_time)
     print "time elapsed (in minutes): " + str(elapsed_time/60.0)
 
@@ -89,6 +89,15 @@ def process(year):
         if fg_id in (0, ' '):
             fg_id = None
         fg_minor_id = row_val['minorMasterId']
+
+        print row_val['BirthDate']
+        if row_val['BirthDate'] is not None:
+            try:
+                if '/' not in row_val['BirthDate']:
+                    row_val['BirthDate'] = datetime.datetime.fromordinal(datetime.datetime(1900, 1, 1).toordinal() + int(row_val['BirthDate']) - 2).date()
+            except ValueError:
+                row_val['BirthDate'] = None
+
         birth_date = row_val['BirthDate']
         age = row_val['Age']
         full_name = row_val['playerName']
@@ -96,9 +105,6 @@ def process(year):
         lname = row_val['LastName']
 
         print year, p_type, fg_id, fg_minor_id, birth_date, age, full_name
-
-        if((full_name is None or full_name == '--empty--') and (fg_id is None or fg_id == '--empty--') and (fg_minor_id is None or fg_minor_id == '--empty--')):
-            continue
 
         full_name = full_name.replace("*","").replace(",", "").replace("  ", " ")
         fname = fname.replace("*", "")
@@ -111,12 +117,15 @@ def process(year):
         if lname2 is not None:
             lname = lname2
 
-        if birth_date is not None:
+
+        if isinstance(birth_date, datetime.date):
+            date_object = birth_date
+        elif birth_date is not None:
             try:
-                date_object = datetime.strptime(birth_date, "%m/%d/%y")
+                date_object = datetime.datetime.strptime(birth_date, "%m/%d/%y")
             except ValueError:
                 try:
-                    date_object = datetime.strptime(birth_date, "%m/%d/%Y")
+                    date_object = datetime.datetime.strptime(birth_date, "%m/%d/%Y")
                 except ValueError:
                     birth_date = None
 
@@ -127,6 +136,8 @@ def process(year):
             fg_id, byear, bmonth, bday = helper.adjust_fg_birthdays(fg_id, byear, bmonth, bday)
             if fg_id == fg_minor_id:
                 id_type = "fg_minor_id"
+            elif "_" in fg_id:
+                id_type = "fg_temp_id"
             else:
                 id_type = "fg_major_id"
 
@@ -162,8 +173,8 @@ def process(year):
                 prospect_id = 0
                 est_years = None
 
-        if fg_id is None:
-            fg_id = str(full_name.replace(' ','')) + '_' + str(p_type) + '_' + str(year)
+        # if fg_id is None:
+        #     fg_id = str(full_name.replace(' ','')) + '_' + str(p_type) + '_' + str(year)
 
         if prospect_id == 0 or prospect_id is None:
             grades_id = fg_id
@@ -308,6 +319,7 @@ def process_pitcher_grades(year, entry, row_val):
     grade_entry = {}
     grade_entry['year'] = year
     grade_entry['grades_id'] = entry['grades_id']
+
     grade_entry['TJ_Date'] = ifzero(row_val['TJDate'])
     grade_entry['MaxVelo'] = ifzero(row_val['Vel'])
     grade_entry['Fastball_RPM'] = ifzero(row_val['fRPM'])

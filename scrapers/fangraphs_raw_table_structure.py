@@ -40,7 +40,7 @@ def initiate():
 
 
 
-    qry = "DROP TABLE IF EXISTS `fg_raw`;\nCREATE TABLE `fg_raw` (\n`prospect_type` TEXT DEFAULT NULL,"
+    qry = "DROP TABLE IF EXISTS `fg_raw`;\nCREATE TABLE `fg_raw` (\n`prospect_type` VARCHAR(64) NOT NULL DEFAULT '',"
     keys = list(set(keys))
     keys.sort()
     for k in keys:
@@ -50,7 +50,7 @@ def initiate():
             row_add = "\n`%s` TEXT DEFAULT NULL," % (str(k))
         qry += row_add
         
-    qry += "\nPRIMARY KEY (`PlayerId`,`Team`,`Type`,`playerName`)\n) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
+    qry += "\nPRIMARY KEY (`prospect_type`, `PlayerId`,`Team`,`Type`,`playerName`)\n) ENGINE=InnoDB DEFAULT CHARSET=latin1;"
 
     print "\n\n\n\n\n", qry
 

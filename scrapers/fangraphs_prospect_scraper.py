@@ -77,18 +77,22 @@ def process_prospect_list(year, list_type, list_key):
                 if val != val2 and 'name' in ky.lower():
                     print '\n\n\n\nUNICODE NAME!!!! - \n\t', val
                     print '\t', val2, '\n\n\n\n'
-                val = val2
+                if 'playerid' in ky.lower():
+                    val = val2.replace(' ','')
+                else:
+                    val = val2
             entry[ky.lower()] = val
 
 
+
+
+        if ('playername' not in entry or entry['playername'] == ''):
+            continue
+
         if 'playerid' not in entry or entry['playerid'] == '':
-            entry['playerid'] = '--empty--'
+            entry['playerid'] = str(entry['playername'].replace(' ','').replace('*','').replace(",", "")) + '_' + str(entry['type'].replace(' ',''))
         if 'team' not in entry or entry['team'] == '':
             entry['team'] = '--empty--'
-        if 'type' not in entry or entry['type'] == '':
-            entry['type'] = '--empty--'
-        if 'playername' not in entry or entry['playername'] == '':
-            entry['playername'] = '--empty--'
 
         print '\t', year, list_key, entry['playername']
         db.insertRowDict(entry, 'fg_raw', insertMany=False, replace=True, rid=0,debug=1)
