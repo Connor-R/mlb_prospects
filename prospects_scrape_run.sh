@@ -23,6 +23,8 @@ year=2020
 
 wait
 
+#truncate all fg_tables first
+
 python scrapers/fangraphs_prospect_scraper.py --end_year "$year" --scrape_length "All"
 
 wait

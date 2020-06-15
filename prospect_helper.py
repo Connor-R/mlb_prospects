@@ -252,48 +252,23 @@ def adjust_mlb_names(mlb_id, fname, lname):
     """
     Adjusts a prospect's first and last name (fname, lname) given their mlb.com player_id for better usage in matching to the professional_prospects table.
     """
-    names_dict = {
-    "clark_trenton": ["Trent", "Grisham"],
-    "deleon_juan": ["Juan", "De Leon"],
-    "deleon_michael": ["Michael", "De Leon"],
-    "eshelman_thomas": ["Tom", "Eshelman"],
-    "gatewood_jacob": ["Jake", "Gatewood"],
-    "groome_jason": ["Jay", "Groome"],
-    "hall_dl": ["DL", "Hall"],
-    "harrison_kj": ["KJ", "Harrison"],
-    "machado_jonathan": ["Jonatan", "Machado"],
-    "martinez_eddie": ["Eddy", "Martinez"],
-    "pablo_martinez_julio": ["Julio Pablo", "Martinez"],
-    "samuel_franco_wander": ["Wander", "Franco"],
-    "sanchez_hudson": ["Hudson", "Potts"],
-    "santillan_antonio": ["Tony", "Santillan"],
-    "stewart_dj": ["DJ", "Stewart"],
-    "yamamoto_jordan": ["Jordan", "Yamamoto"],
-    "zapata_micker_adolfo": ["Micker", "Adolfo"],
-    593423: ["Frankie", "Montas"],
-    595222: ["Mike", "Gerber"],
-    596001: ["Jakob", "Junis"],
-    607188: ["Jake", "Faria"],
-    621072: ["Nick", "Travieso"],
-    621466: ["DJ", "Stewart"],
-    645277: ["Ozzie", "Albies"],
-    650520: ["Micker", "Adolfo"],
-    650958: ["Michael", "De Leon"],
-    656449: ["Jake", "Gatewood"],
-    657141: ["Jordan", "Yamamoto"],
-    660665: ["Juan", "De Leon"],
-    663574: ["Tony", "Santillan"],
-    663757: ["Trent", "Grisham"],
-    664045: ["Tom", "Eshelman"],
-    668888: ["Hudson", "Potts"],
-    671054: ["Jonatan", "Machado"],
-    677551: ["Wander", "Franco"],
-    679881: ["Julio Pablo", "Martinez"],
-
+    player_mapper = {
     }
 
-    if mlb_id in names_dict:
-        fname, lname = names_dict.get(mlb_id)
+    qry = """SELECT wrong_name
+    , right_fname
+    , right_lname
+    FROM name_mapper nm
+    ;"""
+
+    res = db.query(qry)
+    for row in res:
+        wrong, right_fname, right_lname = row
+        player_mapper[wrong] = [right_fname, right_lname]
+
+
+    if mlb_id in player_mapper:
+        fname, lname = player_mapper.get(mlb_id)
         return fname, lname
     else:
         return fname, lname
@@ -399,40 +374,23 @@ def adjust_fg_names(full_name):
     Splits a players full name into first and last names and returns those values.
     Also will adjust a player's name if their name has been listed non ideally so we can better match them to the professional_prospects table.
     """
-    names_dict = {
-    "Abraham Gutierrez": ["Abrahan", "Gutierrez"],
-    "Adam Brett Walker": ["Adam Brett", "Walker"],
-    "Adolis Garcia": ["Jose Adolis", "Garcia"],
-    "D.J. Stewart": ["DJ", "Stewart"],
-    "Fernando Tatis, Jr.": ["Fernando", "Tatis Jr."],
-    "Hoy Jun Park": ["Hoy Jun", "Park"],
-    "Jeison Rosario": ["Jeisson", "Rosario"],
-    "Joe Gray, Jr.": ["Joe", "Gray Jr."],
-    "Jonathan Machado": ["Jonatan", "Machado"],
-    "Lenny Torres, Jr.": ["Lenny", "Torres Jr."],
-    "Luis Alejandro Basabe": ["Luis Alejandro", "Basabe"],
-    "Luis Alexander Basabe": ["Luis Alexander", "Basabe"],
-    "M.J. Melendez": ["MJ", "Melendez"],
-    "Mc Gregory Contreras": ["Mc Gregory", "Contreras"],
-    "Michael Soroka": ["Mike", "Soroka"],
-    "Nate Kirby": ["Nathan", "Kirby"],
-    "Onil Cruz": ["Oneil", "Cruz"],
-    "Roland Bolanos": ["Ronald", "Bolanos"],
-    "T.J. Friedl": ["TJ", "Friedl"],
-    "Thomas Eshelman": ["Tom", "Eshelman"],
-    "TJ Zeuch": ["T.J.", "Zeuch"],
-    "Trenton Clark": ["Trent", "Grisham"],
-    "Vladimir Guerrero, Jr.": ["Vladimir", "Guerrero Jr."],
-    "Yordy Barley": ["Jordy", "Barley"],
-    "Dom Nuez": ["Dom", "Nunez"],
-    "Jonathan Hernndez": ["Jonathan", "Hernandez"],
-    "Isan Daz": ["Isan", "Diaz"],
-    "Jess Luzardo": ["Jesus", "Luzardo"],
-    "Ronald Bolaos": ["Ronald", "Bolanos"],
+
+    player_mapper = {
     }
 
-    if full_name in names_dict:
-        fname, lname = names_dict.get(full_name)
+    qry = """SELECT wrong_name
+    , right_fname
+    , right_lname
+    FROM name_mapper nm
+    ;"""
+
+    res = db.query(qry)
+    for row in res:
+        wrong, right_fname, right_lname = row
+        player_mapper[wrong] = [right_fname, right_lname]
+
+    if full_name in player_mapper:
+        fname, lname = player_mapper.get(full_name)
         full_name = fname + " " + lname
         return full_name, fname, lname
     else:
@@ -460,11 +418,11 @@ def adjust_fg_positions2(full_name, position):
     Adjusts a prospect's position given their fangraphs player_id (fg_id).
     Not heavily necessary unless a player has been mis-classified as a pitcher when they should be a hitter or vice versa.
     """
-    names_dict = {
+    positions_dict = {
     }
  
-    if full_name in names_dict:
-        position = names_dict.get(full_name)
+    if full_name in positions_dict:
+        position = positions_dict.get(full_name)
         return position
     else:
         return position
@@ -543,56 +501,23 @@ def adjust_minorleagueball_name(full_name, year, team_abb):
 
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    names_dict = {
-    'Paul"TheChairman"Voelker_2016_det': ["Paul", "Voelker"],
-    "A.J.Jimenez_2013_tor": ["A.J.", "Jimenez"],
-    "AdamBrettWalker_2014_min": ["Adam Brett", "Walker"],
-    "AdamBrettWalker_2015_min": ["Adam Brett", "Walker"],
-    "AdamBrettWalker_2016_min": ["Adam Brett", "Walker"],
-    "AndersonEspinosa_2016_bos": ["Anderson", "Espinoza"],
-    "AndersonEspinosa_2017_sd": ["Anderson", "Espinoza"],
-    "AndersonEspinosa_2018_sd": ["Anderson", "Espinoza"],
-    "AntonioSantillan_2016_cin": ["Tony", "Santillan"],
-    "AustinD.Adams_2015_cle": ["Austin", "Adams"],
-    "AustinL.Adams_2018_was": ["Austin", "Adams"],
-    "CarlEdwardsJr_2016_chc": ["C.J.", "Edwards"],
-    "CodyAlabamaReed_2018_az":["Cody","Reed"],
-    "CodyBuckelRHP_2013_tex": ["Cody", "Buckel"],
-    "CristianPache_2017_atl": ["Cristian", "Pache"],
-    "DanteBichetteJR_2013_nyy": ["Dante", "Bichette Jr."],
-    "DelinoDeShields_2013_hou": ["Delino", "DeShields Jr."],
-    "DonnieDewess_2018_kc": ["Donnie", "Dewees"],
-    "DwightSmithJR_2016_tor": ["Dwight", "Smith Jr."],
-    "EduardoParedes.RHP_2017_laa":["Eduardo", "Paredes"],
-    "FernandoTatisJr_2017_sd": ["Fernando", "Tatis Jr."],
-    "FernandoTatis_2018_sd": ["Fernando", "Tatis Jr."],
-    "FrancellisMontas_2015_chw": ["Frankie", "Montas"],
-    "J.R.Murphy_2014_nyy": ["J.R.", "Murphy"],
-    "JimmyBrasoban_2016_sd": ["Yimmy", "Brasoban"],
-    "JoseIsraelGarcia_2018_cin": ["Jose Israel", "Garcia"],
-    "JuanCarlosPaniagua_2013_chc": ["Juan Carlos", "Paniagua"],
-    "LanceMcCullers_2013_hou": ["Lance", "McCullers Jr."],
-    "LanceMcCullers_2014_hou": ["Lance", "McCullers Jr."],
-    "LourdesGurriel_2017_tor": ["Lourdes", "Gurriel Jr."],
-    "LuisAlexanderBasabe_2016_bos": ["Luis Alexander", "Basabe"],
-    "LuisAlexanderBasabe_2017_chw": ["Luis Alexander", "Basabe"],
-    "MiguelAlfredoGonzalez_2015_phi": ["Miguel Alfredo", "Gonzalez"],
-    "NickFranklinSS_2013_sea": ["Nick", "Franklin"],
-    "RaulAlcantaraRHP_2015_oak": ["Paul", "Alcantara"],
-    "RaulMondesi_2014_kc": ["Adalberto", "Mondesi"],
-    "RaulMondesi_2015_kc": ["Adalberto", "Mondesi"],
-    "RaulMondesi_2016_kc": ["Adalberto", "Mondesi"],
-    "TrentClark_2016_mil": ["Trent", "Grisham"],
-    "TrentClark_2017_mil": ["Trent", "Grisham"],
-    "TreyMicalczewski_2015_chw": ["Trey", "Michalczewski"],
-    "TroyStokes_2018_mil": ["Troy", "Stokes Jr."],
-    "VladGuerrero_2016_tor": ["Vladimir", "Guerrero Jr."],
-    "VladimirGuerreroJr_2017_tor": ["Vladimir", "Guerrero Jr."],
-    "VladimirGuerrero_2018_tor": ["Vladimir", "Guerrero Jr."],
+    player_mapper = {
     }
 
-    if search_str in names_dict:
-        fname, lname = names_dict.get(search_str)
+    qry = """SELECT wrong_name
+    , right_fname
+    , right_lname
+    FROM name_mapper nm
+    ;"""
+
+    res = db.query(qry)
+    for row in res:
+        wrong, right_fname, right_lname = row
+        player_mapper[wrong] = [right_fname, right_lname]
+
+
+    if search_str in player_mapper:
+        fname, lname = player_mapper.get(search_str)
         full_name = fname + " " + lname
         return full_name, fname, lname
     else:
