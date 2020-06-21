@@ -279,7 +279,7 @@ def update_tables(year):
 
     DROP TABLE IF EXISTS _master_current;
     CREATE TABLE _master_current AS
-    SELECT a.*
+    SELECT DISTINCT a.*
     FROM(
         SELECT superAdjFV_rnk
         , adjFV_rnk
@@ -330,15 +330,40 @@ def update_tables(year):
             ) d1
         ) d2 USING (fnames, lnames, age)
         JOIN _master_prospects m USING (fnames, lnames, age)
+        JOIN professional_prospects pp ON (m.prospect_id = pp.prospect_id)
+        LEFT JOIN NSBL.name_mapper nm ON (1
+            AND (0
+                OR CONCAT(pp.mlb_fname, ' ', pp.mlb_lname) = nm.wrong_name
+                OR CONCAT(pp.mlb_fname, ' ', pp.fg_lname) = nm.wrong_name
+                OR CONCAT(pp.fg_fname, ' ', pp.mlb_lname) = nm.wrong_name
+                OR CONCAT(pp.fg_fname, ' ', pp.fg_lname) = nm.wrong_name
+            )
+            AND (nm.start_year IS NULL OR nm.start_year <= m.year)
+            AND (nm.end_year IS NULL OR nm.end_year >= m.year)
+            AND (nm.position = '' OR nm.position = m.position)
+            AND (nm.rl_team = '' OR nm.rl_team = m.FG_Team)
+            # AND (nm.nsbl_team = '' OR nm.nsbl_team = rbp.team_abb)
+        )
+        LEFT JOIN NSBL.name_mapper nm2 ON (nm.right_fname = nm2.right_fname
+            AND nm.right_lname = nm2.right_lname
+            AND (nm.start_year IS NULL OR nm.start_year = nm2.start_year)
+            AND (nm.end_year IS NULL OR nm.end_year = nm2.end_year)
+            AND (nm.position = '' OR nm.position = nm2.position)
+            AND (nm.rl_team = '' OR nm.rl_team = nm2.rl_team)
+        )
         LEFT JOIN NSBL._draft_rosters cr ON (
-            find_in_set(
-                REPLACE(REPLACE(REPLACE(REPLACE(cr.fname,".","")," JR",""),"-"," "),"'","")
-                , REPLACE(REPLACE(REPLACE(REPLACE(m.fnames,".","")," JR",""),"-"," "),"'","")
-            )>=1
-            AND find_in_set(
-                REPLACE(REPLACE(REPLACE(REPLACE(cr.lname,".","")," JR",""),"-"," "),"'","")
-                , REPLACE(REPLACE(REPLACE(REPLACE(m.lnames,".","")," JR",""),"-"," "),"'","")
-            )>=1
+            nm2.wrong_name = CONCAT(cr.fname, ' ', cr.lname)
+            OR
+            (
+                find_in_set(
+                    REPLACE(REPLACE(REPLACE(REPLACE(cr.fname,".","")," JR",""),"-"," "),"'","")
+                    , REPLACE(REPLACE(REPLACE(REPLACE(m.fnames,".","")," JR",""),"-"," "),"'","")
+                )>=1
+                AND find_in_set(
+                    REPLACE(REPLACE(REPLACE(REPLACE(cr.lname,".","")," JR",""),"-"," "),"'","")
+                    , REPLACE(REPLACE(REPLACE(REPLACE(m.lnames,".","")," JR",""),"-"," "),"'","")
+                )>=1
+            )
         )
         WHERE 1
             AND m.year = %s
