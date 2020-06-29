@@ -274,6 +274,7 @@ def adjust_mlb_names(mlb_id, fname, lname):
         return fname, lname
 
 
+# TODO
 def adjust_mlb_positions(mlb_id, position):
     """
     Adjusts a prospect's position given their mlb.com player_id (mlb_id).
@@ -293,6 +294,7 @@ def adjust_mlb_positions(mlb_id, position):
         return position
 
 
+# TODO
 def adjust_mlb_birthdays(mlb_id, byear, bmonth, bday):
     """
     Adjusts a prospect's birthday given their mlb.com birthdate (byear, bmonth, bday).
@@ -428,6 +430,7 @@ def adjust_fg_positions2(full_name, position):
         return position
 
 
+# TODO
 def adjust_fg_birthdays(fg_id, byear, bmonth, bday): 
     """
     Adjusts a prospect's birthday given their fangraphs birthdate (byear, bmonth, bday) and fangraphs id (fg_id).
@@ -525,6 +528,7 @@ def adjust_minorleagueball_name(full_name, year, team_abb):
         return full_name, fname, lname
 
 
+# TODO
 def adjust_minorleagueball_position(full_name, year, team_abb, position):
     """
     Adjusts a prospect's position given their minorleagueball full name, year, and team.
@@ -553,6 +557,7 @@ def adjust_minorleagueball_position(full_name, year, team_abb, position):
     return position
 
 
+# TODO
 def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
     """
     Adjusts a player's minorleagueball birthyear to better determine their age to match to the professional_prospects table.
@@ -583,6 +588,7 @@ def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
     return age
 
 
+# TODO
 def adjust_minorleagueball_grade(full_name, year, team_abb, grade):
     """
     Adjusts a prospect's grade given their minorleagueball full name, year, team, and grade.
@@ -608,6 +614,7 @@ def adjust_minorleagueball_grade(full_name, year, team_abb, grade):
     return grade
 
 
+# TODO
 def adjust_minorleagueball_eta(full_name, year, team_abb, eta):
     """
     Adjusts a prospect's eta given their minorleagueball full name, year, team, and eta.
