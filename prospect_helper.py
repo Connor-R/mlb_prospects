@@ -42,7 +42,6 @@ def fname_lookup(fname):
 
     return fname_search
 
-
 def id_lookup(fname, lname, lower_year, upper_year):
     """
     Tries to find the prospect_id given a prospects first name (fname), last name (lname), and a range of years they could have been born in (lower_year, upper_year)
@@ -86,7 +85,6 @@ def id_lookup(fname, lname, lower_year, upper_year):
         byear, bmonth, bday = None, None, None
 
     return prospect_id, byear, bmonth, bday
-
 
 def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='all'):
     """
@@ -220,7 +218,6 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
             prospect_id = recheck_val[0][0]
             return prospect_id
 
-
 def est_fg_birthday(age, year, list_type):
     """
     Estimates a player's birthday given their listed age (age), what year (year) and whether they are a draft or international prospect (list_type).
@@ -247,7 +244,6 @@ def est_fg_birthday(age, year, list_type):
 
     return lower_year, upper_year
 
-
 def adjust_mlb_names(mlb_id, fname, lname):
     """
     Adjusts a prospect's first and last name (fname, lname) given their mlb.com player_id for better usage in matching to the professional_prospects table.
@@ -273,103 +269,29 @@ def adjust_mlb_names(mlb_id, fname, lname):
     else:
         return fname, lname
 
-
-# TODO
 def adjust_mlb_positions(mlb_id, position):
     """
     Adjusts a prospect's position given their mlb.com player_id (mlb_id).
     Not heavily necessary unless a player has been mis-classified as a pitcher when they should be a hitter or vice versa.
     """
-    position_dict = {
-    "ryan_ryder": "RHP",
-    "taylor_blake": "LHP",
-    642130: "LHP",
-    669160: "RHP",
-    }
 
-    if mlb_id in position_dict:
-        position = position_dict.get(mlb_id)
-        return position
-    else:
-        return position
+    qry = db.query("SELECT position FROM z_helper_mlb_positions WHERE mlb_id = '%s';" % (mlb_id))
+    if qry != ():
+        position = qry[0][0]
 
+    return position
 
-# TODO
 def adjust_mlb_birthdays(mlb_id, byear, bmonth, bday):
     """
     Adjusts a prospect's birthday given their mlb.com birthdate (byear, bmonth, bday).
     Mostly used in adjusted wrong birthdates for draft prospects in earlier seasons.
     """
-    birthday_dict = {
-    "agnos_jake": [1998, 5, 23],
-    "allen_logan": [1997, 5, 23],
-    "aracena_ricky": [1997, 10, 2],
-    "bradley_bobby": [1996, 5, 29],
-    "burdi_zack": [1995, 3, 9],
-    "burr_ryan": [1994, 5, 28],
-    "cairo_christian": [2001, 6, 11],
-    "castillo_diego": [1994, 1, 18],
-    "cody_kyle": [1994, 8, 9],
-    "deetz_dean": [1993, 11, 29],
-    "diaz_lewin": [1996, 11, 19],
-    "dietz_matthias": [1995, 9, 20],
-    "dillard_thomas": [1997, 8, 28],
-    "eastman_colton": [1996, 8, 22],
-    "ervin_phillip": [1992, 7, 15],
-    "farmer_buck": [1991, 2, 20],
-    "fletcher_dominic": [1997, 9, 2],
-    "garcia_victor": [1999, 9, 16],
-    "gingery_steven": [1997, 9, 23],
-    "gray_seth": [1998, 5, 30],
-    "green_hunter": [1995, 7, 12],
-    "hayes_kebryan": [1997, 1, 28],
-    "hays_austin": [1995, 7, 5],
-    "henry_tommy": [1997, 7, 29],
-    "hill_brigham": [1995, 7, 8],
-    "hudson_dakota": [1994, 9, 15],
-    "jewell_jake": [1993, 5, 16],
-    "justus_connor": [1994, 11, 2],
-    "kirby_nathan": [1993, 11, 23],
-    "knebel_corey": [1991, 11, 26],
-    "lee_nick": [1991, 1, 13],
-    "lopez_jose": [1993, 9, 1],
-    "mathias_mark": [1994, 8, 2],
-    "mitchell_calvin": [1999, 3, 8],
-    "molina_leonardo": [1997, 7, 31],
-    "morris_tanner": [1998, 9, 13],
-    "murphy_brendan": [1999, 1, 2],
-    "murphy_sean": [1994, 10, 10],
-    "oliva_jared": [1995, 11, 27],
-    "perez_joe": [1999, 8, 12],
-    "quantrill_cal": [1995, 2, 10],
-    "rainey_tanner": [1992, 12, 25],
-    "riley_austin": [1997, 4, 2],
-    "rodriguez_jose": [1995, 8, 29],
-    "rosario_jeisson": [1999, 10, 22],
-    "shipley_braden": [1992, 2, 22],
-    "torres_gleyber": [1996, 12, 13],
-    "triolo_jared": [1998, 2, 8],
-    "tyler_robert": [1995, 6, 18],
-    "uelmen_erich": [1996, 5, 19],
-    "varsho_daulton": [1996, 7, 2],
-    "wakamatsu_luke": [1996, 10, 10],
-    "ward_taylor": [1993, 12, 14],
-    "weathers_ryan": [1999, 12, 17],
-    "weigel_patrick": [1994, 7, 8],
-    "whitley_forrest": [1997, 9, 15],
-    "wise_carl": [1994, 5, 25],
-    "woodford_jake": [1996, 10, 28],
-    "zagunis_mark": [1993, 2, 5],
-    "little_grant": [1997, 7, 8],
-    "jarvis_justin": [2000, 2, 20],
-    }
 
-    if mlb_id in birthday_dict:
-        byear, bmonth, bday = birthday_dict.get(mlb_id)
-        return byear, bmonth, bday
-    else:
-        return byear, bmonth, bday
+    qry = db.query("SELECT birth_year, birth_month, birth_day FROM z_helper_mlb_birthdays WHERE mlb_id = '%s';" % (mlb_id))
+    if qry != ():
+        byear, bmonth, bday = qry[0][0], qry[0][1], qry[0][2]
 
+    return byear, bmonth, bday 
 
 def adjust_fg_names(full_name):
     """
@@ -399,7 +321,6 @@ def adjust_fg_names(full_name):
         fname, lname = [full_name.split(" ")[0], " ".join(full_name.split(" ")[1:])]
         return full_name, fname, lname
 
-
 def adjust_fg_positions(fg_id, positions):
     """
     Adjusts a prospect's position given their fangraphs player_id (fg_id).
@@ -413,7 +334,6 @@ def adjust_fg_positions(fg_id, positions):
         return positions
     else:
         return positions
-
 
 def adjust_fg_positions2(full_name, position):
     """
@@ -429,54 +349,16 @@ def adjust_fg_positions2(full_name, position):
     else:
         return position
 
-
-# TODO
 def adjust_fg_birthdays(fg_id, byear, bmonth, bday): 
     """
     Adjusts a prospect's birthday given their fangraphs birthdate (byear, bmonth, bday) and fangraphs id (fg_id).
     """
-    birthday_dict = {
-    "14510": ["14510", 1993, 7, 1],
-    "16207": ["16207", 1992, 9, 18],
-    "16401": ["16401", 1993, 12, 26],
-    "17548": ["17548", 1993, 12, 14],
-    "18126": ["18126", 1994, 1, 1],
-    "sa293098": ["sa874117", 1995, 10, 2],
-    "sa3005715": ["sa3005715", 2000, 9, 16],
-    "sa3007051": ["sa3007051", 1997, 6, 3],
-    "sa3007295": ["sa3007295", 2000, 10, 1],
-    "sa3007744": ["sa3007744", 2000, 12, 22],
-    "sa3008139": ["sa3008139", 1997, 3, 15],
-    "sa3008436": ["sa3008436", 1999, 12, 17],
-    "sa3008743": ["sa3008743", 2002, 4, 26],
-    "sa3008762": ["sa3008762", 2002, 1, 22],
-    "sa3010022": ["sa3010022", 2001, 9, 10],
-    "sa3011446": ["sa3011446", 2000, 8, 25],
-    "sa3011526": ["sa3011526", 1998, 2, 4],
-    "sa392969": ["sa829387", 1997, 2, 24],
-    "sa915815": ["sa915815", 1996, 4, 2],
-    "sa918676": ["sa918676", 1997, 12, 26],
-    "sa3009873": ["sa3009873", 1998, 9, 13],
-    "sa3008762": ["sa3008762", 2002, 1, 27],
-    "sa874174": ["sa874174", 1994, 12, 24],
-    "sa3004278": ["sa3004278", 1998, 9, 10],
-    "sa828703": ["sa828703", 1996, 8, 15],
-    "sa874806": ["sa874806", 1996, 9, 10],
-    "sa828873": ["sa828873", 1996, 11, 18],
-    "sa738514": ["sa738514", 1994, 9, 29],
-    "sa917955": ["sa917955", 1996, 9, 9],
-    "sa3008139": ["sa3008139", 1997, 3, 5],
-    "sa3008031": ["sa3008031", 1997, 7, 8],
-    "17995": ["17995", 1996, 11, 18],
 
-    }
+    qry = db.query("SELECT adjusted_fg_id, birth_year, birth_month, birth_day FROM z_helper_mlb_birthdays WHERE mlb_id = '%s';" % (mlb_id))
+    if qry != ():
+        fg_id, byear, bmonth, bday = qry[0][0], qry[0][1], qry[0][2], qry[0][3]
 
-    if fg_id in birthday_dict:
-        fg_id2, byear, bmonth, bday = birthday_dict.get(fg_id)
-        return fg_id2, byear, bmonth, bday
-    else:
-        return fg_id, byear, bmonth, bday
-
+    return fg_id, byear, bmonth, bday
 
 def adjust_fg_age(full_name, year, list_type, age):
     """
@@ -494,7 +376,6 @@ def adjust_fg_age(full_name, year, list_type, age):
         return age
     else:
         return age
-
 
 def adjust_minorleagueball_name(full_name, year, team_abb):
     """
@@ -527,8 +408,6 @@ def adjust_minorleagueball_name(full_name, year, team_abb):
         fname, lname = [full_name.replace("  "," ").split(" ")[0], " ".join(full_name.split(" ")[1:])]
         return full_name, fname, lname
 
-
-# TODO
 def adjust_minorleagueball_position(full_name, year, team_abb, position):
     """
     Adjusts a prospect's position given their minorleagueball full name, year, and team.
@@ -536,28 +415,12 @@ def adjust_minorleagueball_position(full_name, year, team_abb, position):
     """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    positions_dict = {
-    "CodyBuckel_2013_tex": "RHP",
-    "DelinoDeShieldsJr._2013_hou": "OF",
-    "EduardoParedes_2017_laa": "RHP",
-    "FernandoTatisJr._2018_sd": "3B",
-    "LanceMcCullersJr._2013_hou": "RHP",
-    "LanceMcCullersJr._2014_hou": "RHP",
-    "LourdesGurrielJr._2017_tor": "SS",
-    "NickFranklin_2013_sea": "SS",
-    "RaulAlcantara_2015_oak": "RHP",
-    "TroyStokesJr._2018_mil": "OF",
-    "VladimirGuerreroJr._2016_tor": "3B",
-    "VladimirGuerreroJr._2018_tor": "3B",
-    }
-
-    if search_str in positions_dict:
-        position = positions_dict.get(search_str)
+    qry = db.query("SELECT position FROM z_helper_minorleagueball_positions WHERE minorleagueball_id = '%s';" % (search_str))
+    if qry != ():
+        position = qry[0][0]
 
     return position
 
-
-# TODO
 def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
     """
     Adjusts a player's minorleagueball birthyear to better determine their age to match to the professional_prospects table.
@@ -565,30 +428,13 @@ def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
     """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    years_dict = {
-    "AbrahamToro-Hernandez_2018_hou": 1998,
-    "AnyeloGomez_2018_atl": 1993,
-    "AustinBeck_2018_oak": 1998,
-    "BradKeller_2018_kc": 1995,
-    "CarlosTocci_2017_phi": 1996,
-    "DanielPalka_2017_min": 1992,
-    "FernandoRomero_2017_min": 1996,
-    "HectorVelazquez_2018_bos": 1989,
-    "LewisThorpe_2017_min": 1997,
-    "MitchGarver_2017_min": 1992,
-    "NickGordon_2017_min": 1996,
-    "StephenGonsalves_2017_min": 1995,
-    "WanderJavier_2017_min": 2000,
-    }
-
-    if search_str in years_dict:
-        est_birthyear = years_dict.get(search_str)
+    qry = db.query("SELECT birth_year FROM z_helper_minorleagueball_birthyear WHERE minorleagueball_id = '%s';" % (search_str))
+    if qry != ():
+        est_birthyear = qry[0][0]
 
     age = year - est_birthyear 
     return age
 
-
-# TODO
 def adjust_minorleagueball_grade(full_name, year, team_abb, grade):
     """
     Adjusts a prospect's grade given their minorleagueball full name, year, team, and grade.
@@ -597,44 +443,22 @@ def adjust_minorleagueball_grade(full_name, year, team_abb, grade):
     """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    grades_dict = {
-    "AnthonySantander_2017_bal": "B-",
-    "Chih-WeiHu_2018_tb": "B-/C+",
-    "DemiOrimoloye_2016_mil": "B-/C+",
-    "EmmanuelRivera_2018_kc": "C+",
-    "JamesonTaillon_2014_pit": "B+",
-    "MichaelRatterree_2014_mil": "C+/C",
-    "SamTravis_2016_bos": "B/B-",
-    "StephenGonsalves_2018_min": "B/B+",
-    }
-
-    if search_str in grades_dict:
-        grade = grades_dict.get(search_str)
+    qry = db.query("SELECT grade FROM z_helper_minorleagueball_grades WHERE minorleagueball_id = '%s';" % (search_str))
+    if qry != ():
+        grade = qry[0][0]
 
     return grade
 
-
-# TODO
 def adjust_minorleagueball_eta(full_name, year, team_abb, eta):
     """
     Adjusts a prospect's eta given their minorleagueball full name, year, team, and eta.
     If no adjustment is needed, returns the original eta.
     Used primaily to hardcode positions for player's who have had their original blurb parsing go astray.
     """
-    search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
+     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    eta_dict = {
-    "CodySedlock_2017_bal": "late 2019, or 2018 if used in bullpen",
-    "JoanGregorio_2017_sf": 2017,
-    "JordanJohnson_2017_sf": 2019,
-    "MaxKepler_2018_min": 2017,
-    "MikeShawaryn_2017_bos": 2019,
-    "MitchellWhite_2017_lad": 2019,
-    }
-
-    if search_str in eta_dict:
-        eta = eta_dict.get(search_str)
+    qry = db.query("SELECT eta FROM z_helper_minorleagueball_eta WHERE minorleagueball_id = '%s';" % (search_str))
+    if qry != ():
+        eta = qry[0][0]
 
     return eta
-
-
