@@ -8,6 +8,8 @@ from py_data_getter import data_getter
 from py_db import db
 import prospect_helper as helper
 
+import NSBL_helpers as helper2
+
 db = db("mlb_prospects")
 getter = data_getter()
 
@@ -94,7 +96,9 @@ def process_prospect_list(year, list_type, list_key):
         if 'team' not in entry or entry['team'] == '':
             entry['team'] = '--empty--'
 
+
         print '\t', year, list_key, entry['playername']
+        helper2.input_name(entry.get('playername'))
         db.insertRowDict(entry, 'fg_raw', insertMany=False, replace=True, rid=0,debug=1)
         db.conn.commit()
     sleep(sleep_time)

@@ -13,6 +13,8 @@ from py_data_getter import data_getter
 from py_db import db
 import prospect_helper as helper
 
+import NSBL_helpers as helper2
+
 
 db = db("mlb_prospects")
 getter = data_getter()
@@ -81,6 +83,8 @@ def scrape_prospects(year, prospect_lists):
 
                 fname = player_info["player_first_name"]
                 lname = player_info["player_last_name"]
+                input_name = fname + ' ' + lname
+                helper2.input_name(input_name)
                 fname, lname = helper.adjust_mlb_names(mlb_id, fname, lname)
 
                 position = player_info["positions"]

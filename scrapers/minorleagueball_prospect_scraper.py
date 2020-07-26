@@ -12,6 +12,8 @@ import os
 import prospect_helper as helper
 from py_db import db
 
+import NSBL_helpers as helper2
+
 
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"}
 
@@ -196,6 +198,7 @@ def parse_player(player_text, year, team_abb):
     entry["blurb"] = blurb
     print "\t\t", team_rank, full_name, position, age, grade, eta
 
+    helper2.input_name(entry.get('full_name'))
     db.insertRowDict(entry, "minorleagueball_professional", replace=True, debug=1)
     db.conn.commit()
 

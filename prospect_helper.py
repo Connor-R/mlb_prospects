@@ -455,7 +455,7 @@ def adjust_minorleagueball_eta(full_name, year, team_abb, eta):
     If no adjustment is needed, returns the original eta.
     Used primaily to hardcode positions for player's who have had their original blurb parsing go astray.
     """
-     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
+    search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
     qry = db.query("SELECT eta FROM z_helper_minorleagueball_eta WHERE minorleagueball_id = '%s';" % (search_str))
     if qry != ():
