@@ -478,7 +478,7 @@ def export_masterCSV(table_name):
         row = list(row)
         for i, val in enumerate(row):
             if type(val) in (str,):
-                row[i] = '"' + "".join([l if ord(l) < 128 else "" for l in val]).replace("<o>","").replace("<P>","").replace("\n","  ") + '"'
+                row[i] = '"' + "".join([l if ord(l) < 128 else "" for l in val]).replace("<o>","").replace("<P>","") + '"'
         append_csv.writerow(row)
 
 
