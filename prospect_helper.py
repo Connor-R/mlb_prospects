@@ -157,7 +157,7 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
                 id_column = "mlb_id"
             elif p_type == "draft":
                 id_column = "mlb_draft_id"
-            elif p_type == "int":
+            elif p_type in ("int", "international"):
                 id_column = "mlb_international_id"
             elif p_type == "fg":
                 if "_" in site_id:
@@ -174,7 +174,7 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
             for col, val in {f_name:fname, l_name:lname, id_column:site_id}.items():
 
                 set_str = 'SET %s = "%s"' % (col,val)
-                set_str2 = "AND (%s IS NULL OR %s IS NULL)" % (col, col)
+                set_str2 = "# AND (%s IS NULL OR %s IS NULL)" % (col, col)
 
                 update_qry = """UPDATE professional_prospects 
                 %s
@@ -183,6 +183,7 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
 
 
                 update_query = update_qry % (set_str, prospect_id, set_str2)
+                print update_query
                 db.query(update_query)
                 db.conn.commit()
 
@@ -207,7 +208,7 @@ def add_prospect(site_id, fname, lname, byear, bmonth, bday, p_type, id_type='al
                     entry["mlb_id"] = site_id
                 elif p_type == "draft":
                     entry["mlb_draft_id"] = site_id
-                elif p_type == "int":
+                elif p_type in ("int", "international"):
                     entry["mlb_international_id"] = site_id
 
             db.insertRowDict(entry, "professional_prospects", debug=1)
@@ -254,7 +255,7 @@ def adjust_mlb_names(mlb_id, fname, lname):
     qry = """SELECT wrong_name
     , right_fname
     , right_lname
-    FROM name_mapper nm
+    FROM NSBL.name_mapper nm
     ;"""
 
     res = db.query(qry)
@@ -275,7 +276,7 @@ def adjust_mlb_positions(mlb_id, position):
     Not heavily necessary unless a player has been mis-classified as a pitcher when they should be a hitter or vice versa.
     """
 
-    qry = db.query("SELECT position FROM z_helper_mlb_positions WHERE mlb_id = '%s';" % (mlb_id))
+    qry = db.query('SELECT position FROM z_helper_mlb_positions WHERE mlb_id = "%s";' % (mlb_id))
     if qry != ():
         position = qry[0][0]
 
@@ -287,7 +288,7 @@ def adjust_mlb_birthdays(mlb_id, byear, bmonth, bday):
     Mostly used in adjusted wrong birthdates for draft prospects in earlier seasons.
     """
 
-    qry = db.query("SELECT birth_year, birth_month, birth_day FROM z_helper_mlb_birthdays WHERE mlb_id = '%s';" % (mlb_id))
+    qry = db.query('SELECT birth_year, birth_month, birth_day FROM z_helper_mlb_birthdays WHERE mlb_id = "%s";' % (mlb_id))
     if qry != ():
         byear, bmonth, bday = qry[0][0], qry[0][1], qry[0][2]
 
@@ -305,7 +306,7 @@ def adjust_fg_names(full_name):
     qry = """SELECT wrong_name
     , right_fname
     , right_lname
-    FROM name_mapper nm
+    FROM NSBL.name_mapper nm
     ;"""
 
     res = db.query(qry)
@@ -354,7 +355,7 @@ def adjust_fg_birthdays(fg_id, byear, bmonth, bday):
     Adjusts a prospect's birthday given their fangraphs birthdate (byear, bmonth, bday) and fangraphs id (fg_id).
     """
 
-    qry = db.query("SELECT adjusted_fg_id, birth_year, birth_month, birth_day FROM z_helper_mlb_birthdays WHERE mlb_id = '%s';" % (mlb_id))
+    qry = db.query('SELECT adjusted_fg_id, birth_year, birth_month, birth_day FROM z_helper_fg_birthdays WHERE fg_id = "%s";' % (fg_id))
     if qry != ():
         fg_id, byear, bmonth, bday = qry[0][0], qry[0][1], qry[0][2], qry[0][3]
 
@@ -391,7 +392,7 @@ def adjust_minorleagueball_name(full_name, year, team_abb):
     qry = """SELECT wrong_name
     , right_fname
     , right_lname
-    FROM name_mapper nm
+    FROM NSBL.name_mapper nm
     ;"""
 
     res = db.query(qry)
@@ -415,7 +416,7 @@ def adjust_minorleagueball_position(full_name, year, team_abb, position):
     """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    qry = db.query("SELECT position FROM z_helper_minorleagueball_positions WHERE minorleagueball_id = '%s';" % (search_str))
+    qry = db.query('SELECT position FROM z_helper_minorleagueball_positions WHERE minorleagueball_id = "%s";' % (search_str))
     if qry != ():
         position = qry[0][0]
 
@@ -428,7 +429,7 @@ def adjust_minorleagueball_birthyear(full_name, year, team_abb, est_birthyear):
     """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    qry = db.query("SELECT birth_year FROM z_helper_minorleagueball_birthyear WHERE minorleagueball_id = '%s';" % (search_str))
+    qry = db.query('SELECT birth_year FROM z_helper_minorleagueball_birthyear WHERE minorleagueball_id = "%s";' % (search_str))
     if qry != ():
         est_birthyear = qry[0][0]
 
@@ -443,7 +444,7 @@ def adjust_minorleagueball_grade(full_name, year, team_abb, grade):
     """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    qry = db.query("SELECT grade FROM z_helper_minorleagueball_grades WHERE minorleagueball_id = '%s';" % (search_str))
+    qry = db.query('SELECT grade FROM z_helper_minorleagueball_grades WHERE minorleagueball_id = "%s";' % (search_str))
     if qry != ():
         grade = qry[0][0]
 
@@ -457,7 +458,7 @@ def adjust_minorleagueball_eta(full_name, year, team_abb, eta):
     """
     search_str = full_name.replace(" ", "") + "_" + str(year) + "_" + str(team_abb)
 
-    qry = db.query("SELECT eta FROM z_helper_minorleagueball_eta WHERE minorleagueball_id = '%s';" % (search_str))
+    qry = db.query('SELECT eta FROM z_helper_minorleagueball_eta WHERE minorleagueball_id = "%s";' % (search_str))
     if qry != ():
         eta = qry[0][0]
 

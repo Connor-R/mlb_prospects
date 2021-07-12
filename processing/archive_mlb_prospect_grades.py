@@ -1,3 +1,5 @@
+# used for seasons 2013 - 2019 (no 2020)
+
 import sys
 import argparse
 from decimal import Decimal

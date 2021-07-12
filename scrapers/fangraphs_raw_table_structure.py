@@ -20,7 +20,7 @@ br.addheaders = [("User-agent", "Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) Ap
 
 def initiate():
     keys = []
-    for year in range(2015, 2021):
+    for year in range(2015, 2022):
         if year >= 2018:
             keys = process_prospect_list(keys, year, "professional", "updated")
             sleep(5)

@@ -1,3 +1,5 @@
+#used for seasons 2021 - present (no 2020)
+
 import requests
 import urllib
 import csv
@@ -21,16 +23,16 @@ getter = data_getter()
 
 sleep_time = 1
 
-base_url = "http://m.mlb.com/gen/players/prospects/%s/playerProspects.json"
-player_base_url = "http://m.mlb.com/gen/players/prospects/%s/%s.json"
-player2_base_url = "http://mlb.com/lookup/json/named.player_info.bam?sport_code='mlb'&player_id=%s"
+# https://content-service.mlb.com/?operationName=getRankings&variables=%7B%22slug%22%3A%22sel-pr-2021-giants%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%228fa44dfe068ae49bd2fdaa2481c99685d2a73474074bfdb950791f1c70de34de%22%7D%7D
+
+base_url = "https://content-service.mlb.com/?operationName=getRankings&variables=%%7B%%22slug%%22%%3A%%22sel-pr-%s-%s%%22%%7D&extensions=%%7B%%22persistedQuery%%22%%3A%%7B%%22version%%22%%3A1%%2C%%22sha256Hash%%22%%3A%%228fa44dfe068ae49bd2fdaa2481c99685d2a73474074bfdb950791f1c70de34de%%22%%7D%%7D"
 
 
 def initiate(end_year, scrape_length):
     start_time = time()
 
     if scrape_length == "All":
-        for year in range (2013, end_year+1):
+        for year in range (2021, end_year+1):
             process(year)
     else:
         year = end_year
@@ -44,226 +46,211 @@ def initiate(end_year, scrape_length):
 
 
 def process(year):
-    url = base_url % year
-    print(url)
-    json = getter.get_url_data(url, "json")
-    prospect_lists = json["prospect_players"]
-    scrape_prospects(year, prospect_lists)
+    tms = db.query("SELECT mascot_name FROM NSBL.teams WHERE year = %s" % (year))
+    tmlst = ["Dbacks" if tm[0]=="Diamondbacks" else tm[0] for tm in tms]
+    tmlst.append("draft")
+    # tmlst.append("international")
+
+    def get_team_list(url):
+        json = getter.get_url_data(url, "json")
+
+        try:
+            prospect_list = json["data"]["prospects"]
+            return prospect_list
+        except (KeyError):
+            print("\tMISSING TEAM - waiting 30 seconds and trying again...")
+            sleep(30)
+            get_team_list(url)
 
 
-def scrape_prospects(year, prospect_lists):
+    for i, team in enumerate(tmlst[:]):
+        url = base_url % (year, team)
+        print '\n', i+1, team
 
-    list_cnt = 0
-    for list_type in (prospect_lists):
+        empty_list = False
+        while empty_list is False:
+            prospect_list = get_team_list(url)
+
+            if prospect_list is None:
+                print url
+            else:
+                empty_list = True
+
         entries = []
-        if list_type not in ("rule5", "prospects", "pdp", "rhp", "lhp", "c", "1b", "2b", "3b", "ss", "of"):
-        # if list_type in ("draft","int"):
-            list_cnt += 1
-            ind_list = prospect_lists[list_type]
-            
-            i = 0
-            for player in ind_list:
-                entry = {}
-                i += 1
-                sleep(sleep_time)
-                mlb_id = player["player_id"]
-                player_url = player_base_url % (year, mlb_id)
-                
-                print list_cnt, year, list_type, i, "\t", str(mlb_id)
-                print "\t\t", str(player_url)
+        for j, prospect in enumerate(prospect_list):
+            print "\t", j+1, prospect.get("player").get("useName"), prospect.get("player").get("lastName")
+            entry = parse_prospect(j+1, year, prospect, team)
+            entries.append(entry)
 
-                sleep(sleep_time)
-                player_json = getter.get_url_data(player_url, "json")
 
-                try:
-                    player_info = player_json["prospect_player"]
-                except TypeError:
-                    print "\n\n**ERROR TAG** TYPE_ERROR", str(year), str(mlb_id), "\n\n"
-                    continue
-
-                fname = player_info["player_first_name"]
-                lname = player_info["player_last_name"]
-                input_name = fname + ' ' + lname
-                helper2.input_name(input_name)
-                fname, lname = helper.adjust_mlb_names(mlb_id, fname, lname)
-
-                position = player_info["positions"]
-                position = helper.adjust_mlb_positions(mlb_id, position)
-
-                entry["year"] = year
-                entry["rank"] = i
-                entry["mlb_id"] = mlb_id
-                entry["fname"] = fname
-                entry["lname"] = lname
-                entry["position"] = position
-
-                if list_type in ("int","draft"):
-                    bats = player_info["bats"]
-                    throws = player_info["thrw"]
-                    try:
-                        height = player_info["height"].replace("\"","").split("\"")
-                        height = int(height[0])*12+int(height[1])
-                    except (IndexError, ValueError, AttributeError):
-                        height = None
-                    weight = player_info["weight"]
-                    try:
-                        dob = player_info["birthdate"]
-                        byear = dob.split("/")[2]
-                        bmonth = dob.split("/")[0]
-                        bday = dob.split("/")[1]
-                    except IndexError:
-                        print '\n\nNO BIRTHDAY', fname, lname, mlb_id, "\n\n"
-                        continue
-
-                    byear, bmonth, bday = helper.adjust_mlb_birthdays(mlb_id, byear, bmonth, bday)
-
-                    prospect_id = helper.add_prospect(mlb_id, fname, lname, byear, bmonth, bday, p_type=list_type)
-
-                else:
-                    info_url = player2_base_url % mlb_id
-                    print "\t\t", info_url
-
-                    sleep(sleep_time)
-                    info_json = getter.get_url_data(info_url, "json", json_unicode_convert=True)
-                    try:
-                        info_info = info_json["player_info"]["queryResults"]["row"]
-                    except TypeError:
-                        print "\n\n**ERROR TAG** MLB_ERROR", str(year), str(mlb_id), str(fname), str(lname), "\n\n"
-                        continue
-                        
-                    dob = info_info["birth_date"]
-                    byear = dob.split("-")[0]
-                    bmonth = dob.split("-")[1]
-                    bday = dob.split("-")[2].split("T")[0]
-
-                    prospect_id = helper.add_prospect(mlb_id, fname, lname, byear, bmonth, bday, p_type="professional")
-
-                    try:
-                        bats = info_info["bats"]
-                        throws = info_info["throws"]
-                        height = int(info_info["height_feet"])*12+int(info_info["height_inches"])
-                        weight = int(info_info["weight"])                  
-                    except UnicodeDecodeError:
-                        bats, throws, height, weight = (None, None, None, None)
-                    except ValueError:
-                        print "\n\n**ERROR TAG** MLB_ERROR", str(year), str(mlb_id), str(fname), str(lname), "\n\n"
-                        continue
-
-                if prospect_id == 0 or prospect_id is None:
-                    grades_id = mlb_id
-                else:
-                    grades_id = prospect_id
-
-                entry["prospect_id"] = prospect_id
-                entry["grades_id"] = grades_id
-                entry["bats"] = bats
-                entry["throws"] = throws
-                entry["height"] = height
-                entry["weight"] = weight
-                entry["birth_year"] = byear
-                entry["birth_month"] = bmonth
-                entry["birth_day"] = bday
-
-                entry["team"] = player["team_file_code"]
-                drafted = player_info["drafted"]                
-
-                if list_type == "int":
-                    drafted = None
-                    try:
-                        sign_text = player_info["signed"]
-                        sign_value = sign_text.split(" - ")[1]
-                        signed = sign_value
-                    except IndexError:
-                        signed = ""
-                    try:
-                        signed = int(signed.replace("$","").replace(",",""))
-                    except ValueError:
-                        signed = None
-
-                    schoolcity = player_info["school"]
-                    gradecountry = player_info["year"]
-                    commit = None
-
-                elif list_type == "draft":
-                    try:
-                        signed = player_info["preseason20"].replace(" ","").replace(",","").replace("$","").split("-")[1]
-                    except (KeyError, IndexError):
-                        signed = player_info["signed"].replace(" ","").replace(",","").replace("$","")
-                    try:
-                        signed = int(signed)
-                    except ValueError:
-                        signed = None
-                    schoolcity = player_info["school"]
-                    gradecountry = player_info["year"]
-                    commit = player_info["signed"]
-                else:
-                    signed = player_info["signed"]
-                    schoolcity = None
-                    gradecountry = None
-                    commit = None
-
-                entry["drafted"] = drafted
-                entry["signed"] = signed
-                entry["school_city"] = schoolcity
-                entry["grade_country"] = gradecountry
-                entry["college_commit"] = commit
-
-                if list_type not in ("int", "draft"):
-                    eta = player_info["eta"]
-                    try:
-                        pre_top100 = player_info["preseason100"]
-                    except KeyError:
-                        pre_top100 = None
-                else:
-                    pre_top100 = None
-                    eta = None
-
-                entry["pre_top100"] = pre_top100
-                entry["eta"] = eta
-
-                entry["twitter"] = player_info["twitter"]
-
-                blurb = player_info["content"]["default"].replace("<b>","").replace("</b>","").replace("<br />","").replace("<p>","").replace("</p>","").replace("*","")
-                entry["blurb"] = blurb
-
-                try:
-                    overall_text = blurb.split("Overall")[1].split('\n')[0].replace(':','').replace(' ','')[:8]
-                    if overall_text[0] not in (' ',':','0','1','2','3','4','5','6','7','8','9'):
-                        raise IndexError
-
-                    try:
-                        text2 = overall_text.split('/')[1]
-                    except IndexError:
-                        text2 = overall_text.split('/')[-1]
-
-                    overall = int(filter(str.isdigit, text2[:2]))
-                except IndexError:
-                    overall = 0
-
-                if overall < 20 and overall is not None:
-                    overall = overall*10
-                entry["FV"] = overall
-
-                entries.append(entry)
-
-        if list_type == "draft":
+        if team == "draft":
             table = "mlb_prospects_draft"
-        elif list_type == "int":
+        elif team == "international":
             table = "mlb_prospects_international"
         else:
             table = "mlb_prospects_professional"
 
-        for e in entries:
-            raw_input(e)
-        # if entries != []:
-        #     for i in range(0, len(entries), 1000):
-        #         db.insertRowDict(entries[i: i + 1000], table, insertMany=True, replace=True, rid=0,debug=1)
-        #         db.conn.commit()
+        # for e in entries:
+        #     for n, m in e.items():
+        #         print (str(n)[:20] if len(str(i)) > 20 else str(m).ljust(20)), "\t", j
+        #     raw_input("wait")
+        if entries != []:
+            for i in range(0, len(entries), 1000):
+                db.insertRowDict(entries[i: i + 1000], table, insertMany=True, replace=True, rid=0,debug=1)
+                db.conn.commit()
+
+        # sleep(2)
+
+def parse_prospect(rnk, year, prospect, team):
+    prospect_type = (team if team in ("draft", "international") else "professional")
+    entry = {}
+    def print_prospect_details (prospect):
+        def print_dict(k, v, lvl):
+            for num in range(1, lvl):
+                print "\t",
+            if type(v) is dict:
+                print k
+                for y, z in j.items():
+                    print_dict(y, z, lvl+1)
+            else:
+                print (str(k)[:20] if len(str(k)) > 20 else str(k).ljust(20)), "\t", ("SOME LIST" if type(v) is list else v)
+
+        for a, b in prospect.items():
+            print_dict(a, b, 1)
+
+    def process_grades(year, grades_id, grades, player_type, prospect_type):
+        grade_entry = {"year":year, "grades_id":grades_id, "prospect_type":prospect_type}
+        fv = 0
+        for g in grades:
+            if g.get("key") is None:
+                continue
+            if g.get("key").lower().strip() == "overall":
+                fv = g.get("value")
+            elif g.get("key").lower().strip() not in ("fastball", "change", "curve", "slider", "cutter", "splitter", "control", "hit", "power", "run", "arm", "field", "speed", "throw", "defense"):
+                grade_entry["other"] = g.get("value")
+            else:
+                if g.get("key").lower().strip() == "speed":
+                    grade_entry["run"] = g.get("value")
+                elif g.get("key").lower().strip() == "throw":
+                    grade_entry["arm"] = g.get("value")
+                elif g.get("key").lower().strip() == "defense":
+                    grade_entry["field"] = g.get("value")
+                else:
+                    grade_entry[g.get("key").lower().strip()] = g.get("value")
+
+        if "hit" in grade_entry or "field" in grade_entry:
+            grades_table = "mlb_grades_hitters"
+        elif "control" in grade_entry or "fastball" in grade_entry:
+            grades_table = "mlb_grades_pitchers"
+        else:
+            print "\n\n\n", grades, "\n\n\n"
+            return fv
+        db.insertRowDict(grade_entry, grades_table, insertMany=False, replace=True, rid=0,debug=1)
+        db.conn.commit()
+        return fv
+
+    # print_prospect_details(prospect)
+
+    mlb_id = prospect.get("player").get("id")
+    fname = prospect.get("player").get("useName")
+    lname = prospect.get("player").get("lastName")
+    input_name = fname + " " + lname
+    helper2.input_name(input_name)
+    fname, lname = helper.adjust_mlb_names(mlb_id, fname, lname)
+
+    position = prospect.get("player").get("positionAbbreviation")
+    position = helper.adjust_mlb_positions(mlb_id, position)
+
+    entry["year"] = year
+    entry["rank"] = rnk
+    entry["mlb_id"] = mlb_id
+    entry["fname"] = fname
+    entry["lname"] = lname
+    entry["position"] = position
+
+    try:
+        dob = prospect.get("player").get("birthDate")
+        byear = dob.split("-")[0]
+        bmonth = dob.split("-")[1]
+        bday = dob.split("-")[2]
+    except IndexError:
+        print "\n\nNO BIRTHDAY", fname, lname, mlb_id, "\n\n"
+
+    prospect_id = helper.add_prospect(mlb_id, fname, lname, byear, bmonth, bday, p_type=prospect_type)
+
+    if prospect_id == 0 or prospect_id is None:
+        grades_id = mlb_id
+    else:
+        grades_id = prospect_id
+
+    entry["birth_year"] = byear
+    entry["birth_month"] = bmonth
+    entry["birth_day"] = bday
+    entry["prospect_id"] = prospect_id
+    entry["grades_id"] = grades_id
+
+    bats = prospect.get("player").get("batSideCode")
+    throws = prospect.get("player").get("pitchHandCode")
+    weight = prospect.get("player").get("weight")
+    try:
+        height = prospect.get("player").get("height").replace("\"","").split("'")
+        height = int(height[0])*12+int(height[1])
+    except (IndexError, ValueError, AttributeError):
+        height = None
+
+    entry["bats"] = bats
+    entry["throws"] = throws
+    entry["weight"] = weight
+    entry["height"] = height
+
+    try:
+        team = prospect.get("player").get("currentTeam").get("parentOrgName")
+    except (AttributeError):
+        team = None
+    entry["team"] = team
+
+    commit = prospect.get("prospectSchoolCommitted")
+    entry["college_commit"] = commit
+
+    eta = prospect.get("eta")
+    entry["eta"] = eta
+
+    hit_fv = None
+    pitch_fv = None
+    if prospect.get("gradesHitting") is not None and prospect.get("gradesHitting") != []:
+        hit_grades = prospect.get("gradesHitting")
+        hit_fv = process_grades(year, grades_id, hit_grades, "hit", prospect_type)
+
+    if prospect.get("gradesPitching") is not None and prospect.get("gradesPitching") != []:
+        pitch_grades = prospect.get("gradesPitching")
+        pitch_fv = process_grades(year, grades_id, pitch_grades, "pitch", prospect_type)
+
+    fv = max(hit_fv, pitch_fv)
+    entry["FV"] = fv
+
+
+    blurbs = prospect.get("prospectBio")
+    sorted_blurbs = sorted(blurbs, key=lambda k:k["contentTitle"], reverse=True)
+    cleaned_blurbs = []
+    for i,b in enumerate(sorted_blurbs):
+        if b.get("contentText") is None:
+            sorted_blurbs[i] = None
+        else:
+            blurbtext = str(b.get("contentTitle")) + b.get("contentText").replace("<b>","").replace("</b>","").replace("<br />","").replace("<p>","\n").replace("</p>","").replace("*","").replace("<strong>","").replace("</strong>","")
+            blurbtext = "".join([j if ord(j) < 128 else "" for j in blurbtext])
+            cleaned_blurbs.append(blurbtext)
+
+    blurb = "\n\n".join(cleaned_blurbs)
+    entry["blurb"] = blurb
+
+    # raw_input(entry)
+    return entry
+
 
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2018)
+    parser.add_argument("--end_year",type=int,default=2021)
     parser.add_argument("--scrape_length",type=str,default="Current")
 
     args = parser.parse_args()

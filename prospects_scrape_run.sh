@@ -13,13 +13,13 @@ year=2020
 # only run this if doing a clean scrap
 # python processing/prospect_db_rescrape_prep.py --end_year "$year" --delete_length "Current"
 
-# wait
+wait
 
-# python scrapers/mlb_prospect_scraper.py --end_year "$year" --scrape_length "Current"
+python scrapers/mlb_prospect_scraper.py --end_year "$year" --scrape_length "Current"
 
-# wait
+## wait
 
-# python processing/mlb_prospect_grades.py
+## python processing/mlb_prospect_grades.py
 
 wait
 

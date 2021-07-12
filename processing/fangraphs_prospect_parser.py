@@ -201,10 +201,12 @@ def process(year):
         entry['risk'] = row_val['Risk_Current']
         entry['variance'] = row_val['Variance']
         entry['eta'] = row_val['ETA_Current']
+        entry['pv'] = row_val['PV']
         entry['fv'] = row_val['FV_Current']
         entry['video'] = row_val['YouTube']
         entry['short_blurb'] = row_val['TLDR']
         entry['blurb'] = row_val['Summary']
+        entry['levers'] = row_val['Levers']
 
         if(0
             or (row_val['fCMD'] is not None and int(row_val['fCMD']) > 0)
@@ -242,7 +244,7 @@ def process_draft(year, entry, row_val):
     except (AttributeError, IndexError):
         pick_num, pick_team = None, None
 
-    entry['college_commit'] = row_val['CollegeCommit']
+    entry['college_commit'] = row_val['CollegeCommit'] or row_val['College_Commit'] or row_val['cCollegeCommit']
     entry['draft_rank'] = ifzero(row_val['DraftRank'])
     entry['ovr_rank'] = ifzero(row_val['Ovr_Rank'])
     entry['pick_num'] = pick_num
@@ -311,6 +313,8 @@ def process_hitter_grades(year, entry, row_val):
     grade_entry['Field_future'] = ifzero(row_val['fFld'])
     grade_entry['Throws_present'] = ifzero(row_val['pArm'])
     grade_entry['Throws_future'] = ifzero(row_val['fArm'])
+    grade_entry['Max_EV'] = ifzero(row_val['Max_EV'])
+    grade_entry['HardHit_Pct'] = ifzero(row_val['HardHit%'])
 
     db.insertRowDict(grade_entry, 'fg_grades_hitters', replace=True, debug=1)
     db.conn.commit()
@@ -326,6 +330,7 @@ def process_pitcher_grades(year, entry, row_val):
     grade_entry['Breaking_RPM'] = ifzero(row_val['bRPM'])
     grade_entry['Command_present'] = ifzero(row_val['pCMD'])
     grade_entry['Command_future'] = ifzero(row_val['fCMD'])
+    grade_entry['Fastball_type'] = ifzero(row_val['FBType'])
     grade_entry['Fastball_present'] = ifzero(row_val['pFB'])
     grade_entry['Fastball_future'] = ifzero(row_val['fFB'])
     grade_entry['Changeup_present'] = ifzero(row_val['pCH'])
@@ -352,7 +357,7 @@ def ifzero(val):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2020)
+    parser.add_argument("--end_year",type=int,default=2021)
     parser.add_argument("--scrape_length",type=str,default="All")
 
     args = parser.parse_args()

@@ -7,7 +7,7 @@ import os
 from py_db import db
 db = db("mlb_prospects")
 
-year = 2020
+year = 2021
 
 def initiate():
     start_time = time()
@@ -68,7 +68,7 @@ def process_prospects(year):
     1.25*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
     0.75*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
     )
-    + (IFNULL(MaxVelo_Bonus, 0) + IFNULL(FastballRPM_Bonus, 0) + IFNULL(BreakingRPM_Bonus, 0) + IFNULL(Athleticism_Bonus, 0) + IFNULL(Performance_Bonus, 0) + IFNULL(Trend_Bonus, 0))
+    + (IFNULL(MaxVelo_Bonus, 0) + IFNULL(FastballRPM_Bonus, 0) + IFNULL(BreakingRPM_Bonus, 0) + IFNULL(MaxEV_Bonus, 0) + IFNULL(HardHit_Bonus, 0) + IFNULL(Athleticism_Bonus, 0) + IFNULL(Performance_Bonus, 0) + IFNULL(Trend_Bonus, 0))
     , 1) AS superAdj_FV
     , FORMAT(
     ( 5*avg_FV +
@@ -111,7 +111,7 @@ def process_prospects(year):
         3.00*IFNULL((COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)/COALESCE(FG_Pitchers_pOFP, FG_Hitters_pOFP)), 0) + 
         1.00*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
         )
-        , 1) AS PV
+        , 1) AS Scout_PV
         , FORMAT(
         (
         3.00*IFNULL(COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP), 0) + 
@@ -121,7 +121,7 @@ def process_prospects(year):
         3.00*IFNULL((COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)/COALESCE(FG_Pitchers_fOFP, FG_Hitters_fOFP)), 0) + 
         1.00*IFNULL((COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)/COALESCE(MLB_Pitchers_OFP, MLB_Hitters_OFP)), 0) 
         )
-        , 1) AS FV
+        , 1) AS Scout_FV
         , summary_stats.*
         FROM(
             SELECT "|" AS "*BIO*"
@@ -152,11 +152,13 @@ def process_prospects(year):
             , fg.level AS FG_Level
             , fg.signed AS FG_Signed
             , COALESCE(fg.team, fgd.pick_team) AS FG_Team
+            , COALESCE(fg.levers, fgd.levers) AS FG_Levers
             , COALESCE(fg.athleticism, fgd.athleticism) AS FG_Athleticism
             , COALESCE(fg.performer, fgd.performer) AS FG_Performer
             , COALESCE(fg.risk, fgd.risk) AS FG_Risk
             , COALESCE(fg.variance, fgd.variance) AS FG_Variance
             , COALESCE(fg.eta, fgd.eta) AS FG_ETA
+            , COALESCE(fg.pv, fgd.pv) AS FG_PV
             , COALESCE(fg.fv, fgd.fv) AS FG_FV
             , COALESCE(fg.video, fgd.video) AS FG_Video
             , COALESCE(fg.short_blurb, fgd.short_blurb) AS FG_ShortBlurb
@@ -225,12 +227,15 @@ def process_prospects(year):
             , LEAST(GREATEST((MaxVelo-94)/4, 0), 2) AS MaxVelo_Bonus
             , LEAST(GREATEST((Fastball_RPM-2500)/300, 0), 2) AS FastballRPM_Bonus
             , LEAST(GREATEST((Breaking_RPM-2700)/300, 0), 2) AS BreakingRPM_Bonus
+            , LEAST(GREATEST((fgh.Max_EV-107)/4, -2), 2) AS MaxEV_Bonus
+            , LEAST(GREATEST((fgh.HardHit_Pct-0.3)/0.1, -2), 2) AS HardHit_Bonus
             , 1.0*(COALESCE(fg.athleticism, fgd.athleticism)) AS Athleticism_Bonus
             , 1.0*COALESCE(fg.performer, fgd.performer) AS Performance_Bonus
             , IF(COALESCE(fg.trend, fgd.trend) = 'UP', 1.0, IF(COALESCE(fg.trend, fgd.trend) = 'DOWN', -1.0, 0)) AS Trend_Bonus
             , "|" AS "*FG_HIT*"
             , fgh.Hit_present, fgh.GamePower_present, fgh.RawPower_present, fgh.Speed_present, fgh.Field_present, fgh.Throws_present
             , fgh.Hit_future, fgh.GamePower_future, fgh.RawPower_future, fgh.Speed_future, fgh.Field_future, fgh.Throws_future
+            , fgh.Max_EV, fgh.HardHit_Pct
             , "|" AS "*FG_PITCH*"
             , fgp.TJ_Date
             , fgp.Fastball_RPM
@@ -262,7 +267,7 @@ def process_prospects(year):
 
         ) summary_stats
     ) ofps
-    GROUP BY superAdj_FV, adj_FV, avg_FV, ofp_FV, fnames, lnames, year, age, position, bats, throws, height, weight
+    GROUP BY superAdj_FV DESC, adj_FV, avg_FV, ofp_FV, fnames, lnames, year, age, position, bats, throws, height, weight
     """
 
     table_query = table_qry % (table_add, year)
@@ -286,9 +291,10 @@ def update_tables(year):
         , avgFV_rnk
         , ofpFV_rnk
         , m.*
-        , cr.team_abb AS NSBL_Team
-        , cr.salary AS NSBL_Salary
-        , cr.year AS NSBL_Year
+        , GROUP_CONCAT(DISTINCT cr.team_abb ORDER BY cr.salary DESC) AS NSBL_Team
+        , GROUP_CONCAT(DISTINCT cr.salary ORDER BY cr.salary DESC) AS NSBL_Salary
+        , GROUP_CONCAT(DISTINCT cr.contract_year ORDER BY cr.salary DESC) AS NSBL_Year
+        , GROUP_CONCAT(DISTINCT CONCAT(cr.salary, '/', cr.contract_year, ' - ', cr.team_abb) ORDER BY cr.salary DESC SEPARATOR ' | ') AS NSBL_contract
         FROM(
             SELECT @rowno1:=@rowno1+1 AS `superAdjFV_rnk`, fnames, lnames, age
             FROM(
@@ -367,6 +373,7 @@ def update_tables(year):
         )
         WHERE 1
             AND m.year = %s
+        GROUP BY nm.right_fname, nm.right_lname
     ) a
     ORDER BY superAdjFV_rnk ASC
     ;
@@ -389,6 +396,8 @@ def update_tables(year):
             AND m.NSBL_Team IS NULL
         ORDER BY superAdjFV_rnk ASC
     ) a
+    HAVING 1
+        AND full_name NOT IN ('Julio Rodriguez', 'Carlos Colmenarez', 'Wilman Diaz', 'Cristian Hernandez', 'Jackson Chourio', 'Cristian Santana', 'Andry Lara')
     ;
     """
 
@@ -435,15 +444,15 @@ def export_tables(year):
 
         if table_name == "_draft_list":
             sheet.freeze_panes(1,8)
-            sheet.autofilter('A1:EG1')
+            sheet.autofilter('A1:EN1')
 
         elif table_name == "_master_current":
             sheet.freeze_panes(1,16)
-            sheet.autofilter('A1:DZ1')
+            sheet.autofilter('A1:EG1')
 
         elif table_name == "_master_prospects":
             sheet.freeze_panes(1,12)
-            sheet.autofilter('A1:DS1')
+            sheet.autofilter('A1:DY1')
 
 
         workbook.set_size(1800,1200)
