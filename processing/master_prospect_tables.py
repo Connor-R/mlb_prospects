@@ -188,39 +188,49 @@ def process_prospects(year):
             , FORMAT( (4*fgh.Hit_future + 2*fgh.GamePower_future + 2*fgh.RawPower_future + 2*fgh.Field_future + 1*fgh.Speed_future)/11.00, 1) AS FG_Hitters_fOFP
             , FORMAT( -2.5 + (4*mgh.hit + 4*mgh.power + 2*mgh.field + 1*mgh.run)/11.00, 1) AS MLB_Hitters_OFP
             , FORMAT( 
-                (IFNULL(fgp.Fastball_present, 0) + IFNULL(fgp.Changeup_present, 0) + 
-                IFNULL(fgp.Curveball_present, 0) + IFNULL(fgp.Slider_present, 0) +
-                IFNULL(fgp.Cutter_present, 0) + IFNULL(fgp.Splitter_present, 0) +
-                1.5*IFNULL(fgp.Command_present, 0)
-                )/
-                (IFNULL(fgp.Fastball_present/fgp.Fastball_present, 0) + IFNULL(fgp.Changeup_present/fgp.Changeup_present, 0) + 
-                IFNULL(fgp.Curveball_present/fgp.Curveball_present, 0) + IFNULL(fgp.Slider_present/fgp.Slider_present, 0) +
-                IFNULL(fgp.Cutter_present/fgp.Cutter_present, 0) + IFNULL(fgp.Splitter_present/fgp.Splitter_present, 0) +
-                1.5*IFNULL(fgp.Command_present/fgp.Command_present, 0)
+                (1+(3.5-(ISNULL(fgp.Fastball_present) + ISNULL(fgp.Changeup_present) + ISNULL(fgp.Curveball_present) + ISNULL(fgp.Slider_present) + ISNULL(fgp.Cutter_present) + ISNULL(fgp.Splitter_present)))/15) *
+                (
+                    (IFNULL(fgp.Fastball_present, 0) + IFNULL(fgp.Changeup_present, 0) + 
+                    IFNULL(fgp.Curveball_present, 0) + IFNULL(fgp.Slider_present, 0) +
+                    IFNULL(fgp.Cutter_present, 0) + IFNULL(fgp.Splitter_present, 0) +
+                    1.5*IFNULL(fgp.Command_present, 0)
+                    )/
+                    (IFNULL(fgp.Fastball_present/fgp.Fastball_present, 0) + IFNULL(fgp.Changeup_present/fgp.Changeup_present, 0) + 
+                    IFNULL(fgp.Curveball_present/fgp.Curveball_present, 0) + IFNULL(fgp.Slider_present/fgp.Slider_present, 0) +
+                    IFNULL(fgp.Cutter_present/fgp.Cutter_present, 0) + IFNULL(fgp.Splitter_present/fgp.Splitter_present, 0) +
+                    1.5*IFNULL(fgp.Command_present/fgp.Command_present, 0)
+                    )
                 )
             , 1) AS FG_Pitchers_pOFP
             , FORMAT( 
-                (IFNULL(fgp.Fastball_future, 0) + IFNULL(fgp.Changeup_future, 0) + 
-                IFNULL(fgp.Curveball_future, 0) + IFNULL(fgp.Slider_future, 0) +
-                IFNULL(fgp.Cutter_future, 0) + IFNULL(fgp.Splitter_future, 0) +
-                1.5*IFNULL(fgp.Command_future, 0)
-                )/
-                (IFNULL(fgp.Fastball_future/fgp.Fastball_future, 0) + IFNULL(fgp.Changeup_future/fgp.Changeup_future, 0) + 
-                IFNULL(fgp.Curveball_future/fgp.Curveball_future, 0) + IFNULL(fgp.Slider_future/fgp.Slider_future, 0) +
-                IFNULL(fgp.Cutter_future/fgp.Cutter_future, 0) + IFNULL(fgp.Splitter_future/fgp.Splitter_future, 0) +
-                1.5*IFNULL(fgp.Command_future/fgp.Command_future, 0)
+                (1+(3.5-(ISNULL(fgp.Fastball_future) + ISNULL(fgp.Changeup_future) + ISNULL(fgp.Curveball_future) + ISNULL(fgp.Slider_future) + ISNULL(fgp.Cutter_future) + ISNULL(fgp.Splitter_future)))/15) *
+                (
+                    (IFNULL(fgp.Fastball_future, 0) + IFNULL(fgp.Changeup_future, 0) + 
+                    IFNULL(fgp.Curveball_future, 0) + IFNULL(fgp.Slider_future, 0) +
+                    IFNULL(fgp.Cutter_future, 0) + IFNULL(fgp.Splitter_future, 0) +
+                    1.5*IFNULL(fgp.Command_future, 0)
+                    )/
+                    (IFNULL(fgp.Fastball_future/fgp.Fastball_future, 0) + IFNULL(fgp.Changeup_future/fgp.Changeup_future, 0) + 
+                    IFNULL(fgp.Curveball_future/fgp.Curveball_future, 0) + IFNULL(fgp.Slider_future/fgp.Slider_future, 0) +
+                    IFNULL(fgp.Cutter_future/fgp.Cutter_future, 0) + IFNULL(fgp.Splitter_future/fgp.Splitter_future, 0) +
+                    1.5*IFNULL(fgp.Command_future/fgp.Command_future, 0)
+                    )
                 )
             , 1) AS FG_Pitchers_fOFP,
-            FORMAT( -5.0 +
-                (IFNULL(mgp.fastball, 0) + IFNULL(mgp.change, 0) + 
-                IFNULL(mgp.curve, 0) + IFNULL(mgp.slider, 0) +
-                IFNULL(mgp.cutter, 0) + IFNULL(mgp.splitter, 0) +
-                IFNULL(mgp.other, 0) + 1.5*IFNULL(mgp.control, 0)
-                )/
-                (IFNULL(mgp.fastball/mgp.fastball, 0) + IFNULL(mgp.change/mgp.change, 0) + 
-                IFNULL(mgp.curve/mgp.curve, 0) + IFNULL(mgp.slider/mgp.slider, 0) +
-                IFNULL(mgp.cutter/mgp.cutter, 0) + IFNULL(mgp.splitter/mgp.splitter, 0) +
-                IFNULL(mgp.other/mgp.other, 0) + 1.5*IFNULL(mgp.control/mgp.control, 0)
+            FORMAT(
+                (1+(3.5-(ISNULL(mgp.fastball) + ISNULL(mgp.change) + ISNULL(mgp.curve) + ISNULL(mgp.slider) + ISNULL(mgp.cutter) + ISNULL(mgp.splitter) + ISNULL(mgp.other)))/15) *
+                (
+                    -5.0 +
+                    (IFNULL(mgp.fastball, 0) + IFNULL(mgp.change, 0) + 
+                    IFNULL(mgp.curve, 0) + IFNULL(mgp.slider, 0) +
+                    IFNULL(mgp.cutter, 0) + IFNULL(mgp.splitter, 0) +
+                    IFNULL(mgp.other, 0) + 1.5*IFNULL(mgp.control, 0)
+                    )/
+                    (IFNULL(mgp.fastball/mgp.fastball, 0) + IFNULL(mgp.change/mgp.change, 0) + 
+                    IFNULL(mgp.curve/mgp.curve, 0) + IFNULL(mgp.slider/mgp.slider, 0) +
+                    IFNULL(mgp.cutter/mgp.cutter, 0) + IFNULL(mgp.splitter/mgp.splitter, 0) +
+                    IFNULL(mgp.other/mgp.other, 0) + 1.5*IFNULL(mgp.control/mgp.control, 0)
+                    )
                 )
             , 1) AS MLB_Pitchers_OFP
             , "|" AS "*BONUS_OFP*"
@@ -397,7 +407,7 @@ def update_tables(year):
         ORDER BY superAdjFV_rnk ASC
     ) a
     HAVING 1
-        AND full_name NOT IN ('Julio Rodriguez', 'Carlos Colmenarez', 'Wilman Diaz', 'Cristian Hernandez', 'Jackson Chourio', 'Cristian Santana', 'Andry Lara')
+        AND full_name NOT IN ('Julio Rodriguez', 'Carlos Colmenarez', 'Wilman Diaz', 'Cristian Hernandez', 'Jackson Chourio', 'Cristian Santana', 'Andry Lara', 'Pedro Pineda', 'Pedro Leon')
     ;
     """
 

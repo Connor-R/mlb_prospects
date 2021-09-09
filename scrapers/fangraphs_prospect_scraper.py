@@ -107,7 +107,7 @@ def process_prospect_list(year, list_type, list_key):
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
     parser.add_argument("--end_year",type=int,default=2021)
-    parser.add_argument("--scrape_length",type=str,default="All")
+    parser.add_argument("--scrape_length",type=str,default="Current")
 
     args = parser.parse_args()
     
