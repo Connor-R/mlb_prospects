@@ -11,10 +11,13 @@ db = db('mlb_prospects')
 
 
 def initiate():
+    year = 2022
     start_time = time()
 
-    process_hitters()
-    process_pitchers()
+    process_hitters(year)
+    process_pitchers(year)
+
+    process_overall(year)
 
     end_time = time()
     elapsed_time = float(end_time - start_time)
@@ -23,7 +26,7 @@ def initiate():
     print "time elapsed (in minutes): " + str(elapsed_time/60.0)
 
 
-def process_pitchers():
+def process_pitchers(year):
     entries = []
     query = """SELECT YEAR, grades_id, _type, blurb 
     FROM(
@@ -32,14 +35,15 @@ def process_pitchers():
         UNION ALL SELECT *, 'international' AS '_type' FROM mlb_prospects_international
     ) prospects
     WHERE LEFT(position,3) IN ('RHP','LHP','P')
+    and year = %s
     """
-    res = db.query(query)    
+    res = db.query(query % (year))    
 
     for row in res:
         entry = {}
         year, grades_id, p_type, blurb = row
 
-        print str(grades_id) + ' (' + str(year) + ')',
+        print str(grades_id) + ' (' + str(year) + ')'
         sys.stdout.flush()
 
         
@@ -134,12 +138,15 @@ def process_pitchers():
             other = int(blurb.split("Screwball")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         except IndexError:
             try:
-                other = int(blurb.split("Knuckle")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+                other = int(blurb.split("Knuckleball")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
             except IndexError:
                 try:
                     other = int(blurb.split("Palmball")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
                 except IndexError:
-                    other = None
+                    try:
+                        other = int(blurb.split("Knuckle")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+                    except IndexError:
+                        other = None
         if other < 20 and other is not None:
             other = other*10
         entry["other"] = other
@@ -151,8 +158,45 @@ def process_pitchers():
             db.insertRowDict(entries[i: i + 1000], 'mlb_grades_pitchers', insertMany=True, replace=True, rid=0,debug=1)
             db.conn.commit()
 
+def process_overall(year):
 
-def process_hitters():
+    entries = []
+    query = """SELECT year, grades_id, _type, blurb 
+    FROM(
+        SELECT *, 'professional' AS '_type' FROM mlb_prospects_professional
+        UNION ALL SELECT *, 'draft' AS '_type' FROM mlb_prospects_draft
+        UNION ALL SELECT *, 'international' AS '_type' FROM mlb_prospects_international
+    ) prospects
+    WHERE 1
+    and year = %s
+    and FV = 0
+    """
+    res = db.query(query % (year))
+
+    for row in res:
+        entry = {}
+        year, grades_id, p_type, blurb = row
+
+        print str(grades_id) + ' (' + str(year) + ')' + p_type
+        # sys.stdout.flush()
+
+        if grades_id in (None, 0):
+            continue
+
+        blurb = blurb.replace("&nbsp;", "")
+        if blurb[:4] == '\nPDP':
+            continue
+
+        ovr = int(blurb.split("Overall: ")[1][:2])
+        if ovr < 20:
+            ovr = ovr*10
+
+        update_stmt = db.query("update mlb_prospects_%s set FV = %s where year = %s and grades_id = %s;" % (p_type, ovr, year, grades_id))
+
+        db.conn.commit()
+
+
+def process_hitters(year):
     entries = []
     query = """SELECT year, grades_id, _type, blurb 
     FROM(
@@ -161,15 +205,16 @@ def process_hitters():
         UNION ALL SELECT *, 'international' AS '_type' FROM mlb_prospects_international
     ) prospects
     WHERE LEFT(position,3) NOT IN ('RHP','LHP','P')
+    and year = %s
     """
-    res = db.query(query)
+    res = db.query(query % (year))
 
     for row in res:
         entry = {}
         year, grades_id, p_type, blurb = row
 
-        print str(grades_id) + ' (' + str(year) + ')',
-        sys.stdout.flush()
+        print str(grades_id) + ' (' + str(year) + ')' + p_type
+        # sys.stdout.flush()
 
         entry["year"] = year
         entry["grades_id"] = grades_id
@@ -177,14 +222,17 @@ def process_hitters():
         if grades_id in (None, 0):
             continue
 
+        blurb = blurb.replace("&nbsp;", "")
         if blurb[:4] == '\nPDP':
             continue
 
-        print blurb
+        # print blurb
         try:
             hit = int(blurb.split("Hit")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         except IndexError:
             hit = int(blurb.split("Scouting grades")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+        except ValueError:
+            hit = int(blurb.split("Hit:")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         if hit < 20:
             hit = hit*10
         power = int(blurb.split("Power")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
@@ -198,9 +246,12 @@ def process_hitters():
             run = None
         if run < 20 and run > 0:
             run = run*10
-        arm = int(blurb.split("Arm")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
-        if arm < 20:
-            arm = arm*10
+        try:
+            arm = int(blurb.split("Arm")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+            if arm < 20:
+                arm = arm*10
+        except ValueError:
+            arm = None
         try:
             field = int(blurb.split("Field")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         except IndexError:

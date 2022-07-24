@@ -21,11 +21,11 @@ import NSBL_helpers as helper2
 db = db("mlb_prospects")
 getter = data_getter()
 
-sleep_time = 1
+sleep_time = 10
 
 # https://content-service.mlb.com/?operationName=getRankings&variables=%7B%22slug%22%3A%22sel-pr-2021-giants%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%228fa44dfe068ae49bd2fdaa2481c99685d2a73474074bfdb950791f1c70de34de%22%7D%7D
 
-base_url = "https://content-service.mlb.com/?operationName=getRankings&variables=%%7B%%22slug%%22%%3A%%22sel-pr-%s-%s%%22%%7D&extensions=%%7B%%22persistedQuery%%22%%3A%%7B%%22version%%22%%3A1%%2C%%22sha256Hash%%22%%3A%%228fa44dfe068ae49bd2fdaa2481c99685d2a73474074bfdb950791f1c70de34de%%22%%7D%%7D"
+base_url = "https://content-service.mlb.com/?operationName=getRankings&variables=%%7B%%22slug%%22%%3A%%22sel-pr-%s-%s%%22%%7D&extensions=%%7B%%22persistedQuery%%22%%3A%%7B%%22version%%22%%3A1%%2C%%22sha256Hash%%22%%3A%%22c149b73ab686878b52a59226bd359841833b2c2525e4add7acdf176f0a483d3b%%22%%7D%%7D"
 
 
 def initiate(end_year, scrape_length):
@@ -46,7 +46,7 @@ def initiate(end_year, scrape_length):
 
 
 def process(year):
-    tms = db.query("SELECT mascot_name FROM NSBL.teams WHERE year = %s" % (year))
+    tms = db.query("""SELECT replace(mascot_name, " ", "") FROM NSBL.teams WHERE year = %s;""" % (year))
     tmlst = ["Dbacks" if tm[0]=="Diamondbacks" else tm[0] for tm in tms]
     tmlst.append("draft")
     # tmlst.append("international")
@@ -58,6 +58,7 @@ def process(year):
             prospect_list = json["data"]["prospects"]
             return prospect_list
         except (KeyError):
+            print(url)
             print("\tMISSING TEAM - waiting 30 seconds and trying again...")
             sleep(30)
             get_team_list(url)
@@ -78,7 +79,7 @@ def process(year):
 
         entries = []
         for j, prospect in enumerate(prospect_list):
-            print "\t", j+1, prospect.get("player").get("useName"), prospect.get("player").get("lastName")
+            # print "\t", j+1, prospect.get("player").get("useName"), prospect.get("player").get("boxscoreName").split(",")[0]
             entry = parse_prospect(j+1, year, prospect, team)
             entries.append(entry)
 
@@ -152,9 +153,19 @@ def parse_prospect(rnk, year, prospect, team):
     # print_prospect_details(prospect)
 
     mlb_id = prospect.get("player").get("id")
-    fname = prospect.get("player").get("useName")
-    lname = prospect.get("player").get("lastName")
+    fname0 = prospect.get("player").get("useName")
+    lname0 = prospect.get("player").get("boxscoreName").split(",")[0]
+    input_name0 = fname0 + " " + lname0
+
+    fname = "".join([i if ord(i) < 128 else "" for i in fname0])
+    lname = "".join([i if ord(i) < 128 else "" for i in lname0])
     input_name = fname + " " + lname
+    print '\t', input_name
+    if input_name != input_name0:
+        # raw_input(val2)
+        print '\n\n\n\nUNICODE NAME!!!! - \n\t'#, val
+        print '\t', input_name, '\n\n\n\n'
+
     helper2.input_name(input_name)
     fname, lname = helper.adjust_mlb_names(mlb_id, fname, lname)
 
@@ -250,7 +261,7 @@ def parse_prospect(rnk, year, prospect, team):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2021)
+    parser.add_argument("--end_year",type=int,default=2022)
     parser.add_argument("--scrape_length",type=str,default="Current")
 
     args = parser.parse_args()

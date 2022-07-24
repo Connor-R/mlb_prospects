@@ -357,7 +357,7 @@ def ifzero(val):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2021)
+    parser.add_argument("--end_year",type=int,default=2022)
     parser.add_argument("--scrape_length",type=str,default="All")
 
     args = parser.parse_args()

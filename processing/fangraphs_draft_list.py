@@ -10,13 +10,13 @@ db = db("mlb_prospects")
 
 def process():
 
-    mlb_bat_url = 'https://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=c,3,4,6,11,12,13,21,22,-1,34,35,40,-1,44,43,45,41,-1,23,37,38,50,61,-1,53,111,54,56,-1,315,316,317,305,306,307,308,309,310,311,-1,58&season=2021&month=0&season1=2021&ind=0&team=0&rost=0&age=0&filter=&players='
+    mlb_bat_url = 'https://www.fangraphs.com/leaders.aspx?pos=all&stats=bat&lg=all&qual=0&type=c,3,4,6,11,12,13,21,22,-1,34,35,40,-1,44,43,45,41,-1,23,37,38,50,61,-1,53,111,54,56,-1,315,316,317,305,306,307,308,309,310,311,-1,58&season=2022&month=0&season1=2022&ind=0&team=0&rost=0&age=0&filter=&players='
 
-    mlb_pit_url = 'https://www.fangraphs.com/leaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,3,4,5,11,7,8,13,-1,36,37,40,120,121,43,-1,44,48,51,-1,76,6,117,45,118,62,119,122,332,124,-1,322,323,324,325,326,327,328,331,-1,59&season=2021&month=0&season1=2021&ind=0&team=0&rost=0&age=0&filter=&players='
+    mlb_pit_url = 'https://www.fangraphs.com/leaders.aspx?pos=all&stats=pit&lg=all&qual=0&type=c,3,4,5,11,7,8,13,-1,36,37,40,120,121,43,-1,44,48,51,-1,76,6,117,45,118,62,119,122,332,124,-1,322,323,324,325,326,327,328,331,-1,59&season=2022&month=0&season1=2022&ind=0&team=0&rost=0&age=0&filter=&players='
 
-    all_bat_url = 'https://www.fangraphs.com/leaders/minor-league?pos=all&lg=2,4,5,6,7,8,9,10,11,14,12,13,15,16,17,18,30,32,33&stats=bat&qual=y&type=1&team=&season=2021&seasonEnd=2021&org=&ind=0&splitTeam=false&players='
+    all_bat_url = 'https://www.fangraphs.com/leaders/minor-league?pos=all&lg=2,4,5,6,7,8,9,10,11,14,12,13,15,16,17,18,30,32,33&stats=bat&qual=y&type=1&team=&season=2022&seasonEnd=2022&org=&ind=0&splitTeam=false&players='
     
-    all_pit_url = 'https://www.fangraphs.com/leaders/minor-league/?pos=all&lg=2,4,5,6,7,8,9,10,11,14,12,13,15,16,17,18,30,32,33&stats=pit&qual=y&type=0&team=&season=2021&seasonEnd=2021&org=&ind=0&splitTeam=false&players='
+    all_pit_url = 'https://www.fangraphs.com/leaders/minor-league/?pos=all&lg=2,4,5,6,7,8,9,10,11,14,12,13,15,16,17,18,30,32,33&stats=pit&qual=y&type=0&team=&season=2022&seasonEnd=2022&org=&ind=0&splitTeam=false&players='
 
     get_players = """SELECT 
     p.mlb_id,

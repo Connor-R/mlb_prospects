@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 source "/Users/connordog/.bash_profile"
 
-year=2020
+year=2022
 
 
 # 2020 update - all this shit is kinda broken.

@@ -7,7 +7,7 @@ import os
 from py_db import db
 db = db("mlb_prospects")
 
-year = 2021
+year = 2022
 
 def initiate():
     start_time = time()
