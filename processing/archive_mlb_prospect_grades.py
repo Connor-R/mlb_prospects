@@ -11,7 +11,7 @@ db = db('mlb_prospects')
 
 
 def initiate():
-    year = 2022
+    year = 2024
     start_time = time()
 
     process_hitters(year)
@@ -230,11 +230,18 @@ def process_hitters(year):
         try:
             hit = int(blurb.split("Hit")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         except IndexError:
-            hit = int(blurb.split("Scouting grades")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+            try:
+                hit = int(blurb.split("Hitting")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+            except IndexError:
+                hit = int(blurb.split("Scouting grades")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         except ValueError:
-            hit = int(blurb.split("Hit:")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+            try:
+                hit = int(blurb.split("Hit:")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
+            except IndexError:
+                hit = int(blurb.split("Hitting:")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         if hit < 20:
             hit = hit*10
+
         power = int(blurb.split("Power")[1].split("|")[0].split('\n')[0].split('/')[-1].replace(':','').replace(' ','')[:8])
         if power < 20:
             power = power*10

@@ -7,7 +7,7 @@ import os
 from py_db import db
 db = db("mlb_prospects")
 
-year = 2022
+year = 2026
 
 def initiate():
     start_time = time()
@@ -449,7 +449,7 @@ def export_tables(year):
             cell_format.set_shrink()
             for j, col in enumerate(row):
                 if type(col) in (str,):
-                    col = "".join([l if ord(l) < 128 else "" for l in col])
+                    col = "".join([l if ord(l) < 128 else "*" for l in col])
                 sheet.write(i+1, j, col, cell_format)
 
         if table_name == "_draft_list":
@@ -497,7 +497,7 @@ def export_masterCSV(table_name):
         row = list(row)
         for i, val in enumerate(row):
             if type(val) in (str,):
-                row[i] = '"' + "".join([l if ord(l) < 128 else "" for l in val]).replace("<o>","").replace("<P>","") + '"'
+                row[i] = '"' + "".join([l if ord(l) < 128 else "*" for l in val]).replace("<o>","").replace("<P>","") + '"'
         append_csv.writerow(row)
 
 

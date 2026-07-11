@@ -106,9 +106,9 @@ def process(year):
 
         print year, p_type, fg_id, fg_minor_id, birth_date, age, full_name
 
-        full_name = full_name.replace("*","").replace(",", "").replace("  ", " ")
-        fname = fname.replace("*", "")
-        lname = lname.replace("*", "")
+        full_name = full_name.replace(",", "").replace("  ", " ")
+        fname = fname
+        lname = lname
 
         full_name, fname2, lname2 = helper.adjust_fg_names(full_name)
 
@@ -252,11 +252,14 @@ def process_draft(year, entry, row_val):
 
     trend = ifzero(row_val['Trend'])
 
+    trend_val = None
     try:
         if 'uarr' in trend:
             trend_val = 'UP'
         elif 'darr' in trend:
             trend_val = 'DOWN'
+        if 'x1F195' in trend:
+            trend_val = 'NEW'
     except TypeError:
         trend_val = None
 
@@ -282,11 +285,14 @@ def process_professional(year, entry, row_val):
 
     trend = ifzero(row_val['Trend'])
 
+    trend_val = None
     try:
         if 'uarr' in trend:
             trend_val = 'UP'
         elif 'darr' in trend:
             trend_val = 'DOWN'
+        if 'x1F195' in trend:
+            trend_val = 'NEW'
     except TypeError:
         trend_val = None
 
@@ -357,7 +363,7 @@ def ifzero(val):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2022)
+    parser.add_argument("--end_year",type=int,default=2026)
     parser.add_argument("--scrape_length",type=str,default="All")
 
     args = parser.parse_args()

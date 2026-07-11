@@ -80,7 +80,7 @@ def process_team_url(year, team_abb, team_url):
         sec_text = e.getText().strip()
 
 
-        sec_text = "".join([i if ord(i) < 128 else "" for i in sec_text])
+        sec_text = "".join([i if ord(i) < 128 else "*" for i in sec_text])
         # print sec_text
 
         # regex to split the text into individual player sections

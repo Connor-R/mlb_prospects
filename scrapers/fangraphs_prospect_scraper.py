@@ -76,7 +76,7 @@ def process_prospect_list(year, list_type, list_key):
         for ky,val in plr.items():
             # print ky,val
             if type(val) in (str,unicode):
-                val2 = "".join([i if ord(i) < 128 else "" for i in val])
+                val2 = "".join([i if ord(i) < 128 else "*" for i in val])
                 if val != val2 and 'name' in ky.lower():
                     # raw_input(val2)
                     print '\n\n\n\nUNICODE NAME!!!! - \n\t'#, val
@@ -108,7 +108,7 @@ def process_prospect_list(year, list_type, list_key):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2022)
+    parser.add_argument("--end_year",type=int,default=2026)
     parser.add_argument("--scrape_length",type=str,default="Current")
 
     args = parser.parse_args()

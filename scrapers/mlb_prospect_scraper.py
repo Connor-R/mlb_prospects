@@ -4,6 +4,7 @@ import requests
 import urllib
 import csv
 import os
+import re
 import sys
 import datetime
 import codecs
@@ -23,9 +24,9 @@ getter = data_getter()
 
 sleep_time = 10
 
-# https://content-service.mlb.com/?operationName=getRankings&variables=%7B%22slug%22%3A%22sel-pr-2021-giants%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%228fa44dfe068ae49bd2fdaa2481c99685d2a73474074bfdb950791f1c70de34de%22%7D%7D
+# https://data-graph.mlb.com/graphql?operationName=GetPlayerRankings&variables=%7B%22slug%22%3A%22sel-pr-2024-redsox%22%2C%22limit%22%3A30%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22db9e4351e71abadd11bc884001908f532e7363b7fd0562d5ee2b02e9b146ac4d%22%7D%7D
 
-base_url = "https://content-service.mlb.com/?operationName=getRankings&variables=%%7B%%22slug%%22%%3A%%22sel-pr-%s-%s%%22%%7D&extensions=%%7B%%22persistedQuery%%22%%3A%%7B%%22version%%22%%3A1%%2C%%22sha256Hash%%22%%3A%%22c149b73ab686878b52a59226bd359841833b2c2525e4add7acdf176f0a483d3b%%22%%7D%%7D"
+base_url = "https://data-graph.mlb.com/graphql?operationName=GetPlayerRankings&variables=%%7B%%22slug%%22%%3A%%22sel-pr-%s-%s%%22%%2C%%22limit%%22%%3A30%%7D&extensions=%%7B%%22persistedQuery%%22%%3A%%7B%%22version%%22%%3A1%%2C%%22sha256Hash%%22%%3A%%22db9e4351e71abadd11bc884001908f532e7363b7fd0562d5ee2b02e9b146ac4d%%22%%7D%%7D"
 
 
 def initiate(end_year, scrape_length):
@@ -49,13 +50,18 @@ def process(year):
     tms = db.query("""SELECT replace(mascot_name, " ", "") FROM NSBL.teams WHERE year = %s;""" % (year))
     tmlst = ["Dbacks" if tm[0]=="Diamondbacks" else tm[0] for tm in tms]
     tmlst.append("draft")
-    # tmlst.append("international")
+    tmlst.append("international")
 
     def get_team_list(url):
-        json = getter.get_url_data(url, "json")
+        headers = {
+            'x-apollo-operation-name': 'GetPlayerRankings',
+            'Content-Type': 'application/json'
+        }
+        json = getter.get_url_data(url, "json", headers=headers)
 
         try:
             prospect_list = json["data"]["prospects"]
+            # raw_input(prospect_list)
             return prospect_list
         except (KeyError):
             print(url)
@@ -66,7 +72,7 @@ def process(year):
 
     for i, team in enumerate(tmlst[:]):
         url = base_url % (year, team)
-        print '\n', i+1, team
+        print '\n', i+1, team, url
 
         empty_list = False
         while empty_list is False:
@@ -79,6 +85,7 @@ def process(year):
 
         entries = []
         for j, prospect in enumerate(prospect_list):
+            # print "\t", j+1, prospect
             # print "\t", j+1, prospect.get("player").get("useName"), prospect.get("player").get("boxscoreName").split(",")[0]
             entry = parse_prospect(j+1, year, prospect, team)
             entries.append(entry)
@@ -111,10 +118,19 @@ def parse_prospect(rnk, year, prospect, team):
                 print "\t",
             if type(v) is dict:
                 print k
-                for y, z in j.items():
+                for y, z in v.items():
                     print_dict(y, z, lvl+1)
             else:
-                print (str(k)[:20] if len(str(k)) > 20 else str(k).ljust(20)), "\t", ("SOME LIST" if type(v) is list else v)
+                if type(v) == list:
+                    val = "SOME LIST"
+                elif v is None:
+                    val = 'n/a'
+                elif type(v) in (str, unicode):
+                    val = "".join([i if ord(i) < 128 else "*" for i in v])
+                else:
+                    val = v
+
+                print (str(k)[:20] if len(str(k)) > 20 else str(k).ljust(20)), "\t", val
 
         for a, b in prospect.items():
             print_dict(a, b, 1)
@@ -150,15 +166,15 @@ def parse_prospect(rnk, year, prospect, team):
         db.conn.commit()
         return fv
 
-    # print_prospect_details(prospect)
+    print_prospect_details(prospect)
 
-    mlb_id = prospect.get("player").get("id")
-    fname0 = prospect.get("player").get("useName")
-    lname0 = prospect.get("player").get("boxscoreName").split(",")[0]
+    mlb_id = prospect.get("playerEntity").get("player").get("id")
+    fname0 = prospect.get("playerEntity").get("player").get("useName")
+    lname0 = prospect.get("playerEntity").get("player").get("boxscoreName").split(",")[0]
     input_name0 = fname0 + " " + lname0
 
-    fname = "".join([i if ord(i) < 128 else "" for i in fname0])
-    lname = "".join([i if ord(i) < 128 else "" for i in lname0])
+    fname = "".join([i if ord(i) < 128 else "*" for i in fname0])
+    lname = "".join([i if ord(i) < 128 else "*" for i in lname0])
     input_name = fname + " " + lname
     print '\t', input_name
     if input_name != input_name0:
@@ -169,7 +185,7 @@ def parse_prospect(rnk, year, prospect, team):
     helper2.input_name(input_name)
     fname, lname = helper.adjust_mlb_names(mlb_id, fname, lname)
 
-    position = prospect.get("player").get("positionAbbreviation")
+    position = prospect.get("playerEntity").get("player").get("positionAbbreviation")
     position = helper.adjust_mlb_positions(mlb_id, position)
 
     entry["year"] = year
@@ -180,7 +196,7 @@ def parse_prospect(rnk, year, prospect, team):
     entry["position"] = position
 
     try:
-        dob = prospect.get("player").get("birthDate")
+        dob = prospect.get("playerEntity").get("player").get("birthDate")
         byear = dob.split("-")[0]
         bmonth = dob.split("-")[1]
         bday = dob.split("-")[2]
@@ -200,11 +216,11 @@ def parse_prospect(rnk, year, prospect, team):
     entry["prospect_id"] = prospect_id
     entry["grades_id"] = grades_id
 
-    bats = prospect.get("player").get("batSideCode")
-    throws = prospect.get("player").get("pitchHandCode")
-    weight = prospect.get("player").get("weight")
+    bats = prospect.get("playerEntity").get("player").get("batSideCode")
+    throws = prospect.get("playerEntity").get("player").get("pitchHandCode")
+    weight = prospect.get("playerEntity").get("player").get("weight")
     try:
-        height = prospect.get("player").get("height").replace("\"","").split("'")
+        height = prospect.get("playerEntity").get("player").get("height").replace("\"","").split("'")
         height = int(height[0])*12+int(height[1])
     except (IndexError, ValueError, AttributeError):
         height = None
@@ -215,32 +231,29 @@ def parse_prospect(rnk, year, prospect, team):
     entry["height"] = height
 
     try:
-        team = prospect.get("player").get("currentTeam").get("parentOrgName")
+        pteam = prospect.get("playerEntity").get("player").get("currentTeam").get("parentOrgName")
     except (AttributeError):
-        team = None
-    entry["team"] = team
+        pteam = team
+    entry["team"] = pteam
 
-    commit = prospect.get("prospectSchoolCommitted")
+    commit = prospect.get("playerEntity").get("prospectSchoolCommitted")
     entry["college_commit"] = commit
 
-    eta = prospect.get("eta")
+    eta = prospect.get("playerEntity").get("eta")
     entry["eta"] = eta
 
     hit_fv = None
     pitch_fv = None
-    if prospect.get("gradesHitting") is not None and prospect.get("gradesHitting") != []:
-        hit_grades = prospect.get("gradesHitting")
+    if prospect.get("playerEntity").get("gradesHitting") is not None and prospect.get("playerEntity").get("gradesHitting") != []:
+        hit_grades = prospect.get("playerEntity").get("gradesHitting")
         hit_fv = process_grades(year, grades_id, hit_grades, "hit", prospect_type)
 
-    if prospect.get("gradesPitching") is not None and prospect.get("gradesPitching") != []:
-        pitch_grades = prospect.get("gradesPitching")
+    if prospect.get("playerEntity").get("gradesPitching") is not None and prospect.get("playerEntity").get("gradesPitching") != []:
+        pitch_grades = prospect.get("playerEntity").get("gradesPitching")
         pitch_fv = process_grades(year, grades_id, pitch_grades, "pitch", prospect_type)
 
-    fv = max(hit_fv, pitch_fv)
-    entry["FV"] = fv
 
-
-    blurbs = prospect.get("prospectBio")
+    blurbs = prospect.get("playerEntity").get("prospectBio")
     sorted_blurbs = sorted(blurbs, key=lambda k:k["contentTitle"], reverse=True)
     cleaned_blurbs = []
     for i,b in enumerate(sorted_blurbs):
@@ -248,12 +261,24 @@ def parse_prospect(rnk, year, prospect, team):
             sorted_blurbs[i] = None
         else:
             blurbtext = str(b.get("contentTitle")) + b.get("contentText").replace("<b>","").replace("</b>","").replace("<br />","").replace("<p>","\n").replace("</p>","").replace("*","").replace("<strong>","").replace("</strong>","")
-            blurbtext = "".join([j if ord(j) < 128 else "" for j in blurbtext])
+            blurbtext = "".join([j if ord(j) < 128 else "*" for j in blurbtext])
             cleaned_blurbs.append(blurbtext)
 
     blurb = "\n\n".join(cleaned_blurbs)
     entry["blurb"] = blurb
 
+    # fv = max(hit_fv, pitch_fv)
+    try:
+        if team in ("draft", "international"):
+            fv = re.split("scouting grades:", blurb, flags=re.IGNORECASE)[1].split("Overall: ")[1][:2]
+        else:
+            fv = re.split("scouting grades:", blurb.split("%s\n" % (year))[1] , flags=re.IGNORECASE)[1].split("Overall: ")[1][:2]
+        # input(fv)
+    except (IndexError):
+        fv = None
+    if fv == 0:
+        fv = None
+    entry["FV"] = fv
     # raw_input(entry)
     return entry
 
@@ -261,7 +286,7 @@ def parse_prospect(rnk, year, prospect, team):
 
 if __name__ == "__main__":     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--end_year",type=int,default=2022)
+    parser.add_argument("--end_year",type=int,default=2025)
     parser.add_argument("--scrape_length",type=str,default="Current")
 
     args = parser.parse_args()

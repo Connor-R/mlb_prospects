@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 source "/Users/connordog/.bash_profile"
 
-year=2022
+year=2026
 
 
 # 2020 update - all this shit is kinda broken.
@@ -13,9 +13,9 @@ year=2022
 # only run this if doing a clean scrap
 # python processing/prospect_db_rescrape_prep.py --end_year "$year" --delete_length "Current"
 
-wait
+# wait
 
-python scrapers/mlb_prospect_scraper.py --end_year "$year" --scrape_length "Current"
+# python scrapers/mlb_prospect_scraper.py --end_year "$year" --scrape_length "Current"
 
 ## wait
 
@@ -33,11 +33,11 @@ python processing/fangraphs_prospect_parser.py --end_year "$year" --scrape_lengt
 
 wait
 
-# python scrapers/minorleagueball_prospect_scraper.py --end_year "$year" --scrape_length "Current"
+# # python scrapers/minorleagueball_prospect_scraper.py --end_year "$year" --scrape_length "Current"
 
-# wait
+# # wait
 
-# python processing/minorleagueball_prospect_id_grade_updater.py
+# # python processing/minorleagueball_prospect_id_grade_updater.py
 
 wait
 

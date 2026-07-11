@@ -2,7 +2,7 @@ SHELL=/bin/bash
 source "/Users/connordog/.bash_profile"
 
 updateDate=$( date +"%b %d, %Y" )
-year=2022
+year=2026
 
 python processing/master_prospect_tables.py
 
